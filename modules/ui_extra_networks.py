@@ -124,6 +124,9 @@ class ExtraNetworksPage:
         if onclick is None:
             onclick = '"' + html.escape(f"""return cardClicked({json.dumps(tabname)}, {item["prompt"]}, {"true" if self.allow_negative_prompt else "false"})""") + '"'
 
+        height = f"height: {shared.opts.extra_networks_card_height}px;" if shared.opts.extra_networks_card_height else ''
+        width = f"width: {shared.opts.extra_networks_card_width}px;" if shared.opts.extra_networks_card_width else ''
+        background_image = f"background-image: url(\"{html.escape(preview)}\");" if preview else ''
         metadata_button = ""
         metadata = item.get("metadata")
         if metadata:
@@ -131,7 +134,7 @@ class ExtraNetworksPage:
             metadata_button = f"<div class='metadata-button' title='Show metadata' onclick={metadata_onclick}></div>"
 
         args = {
-            "preview_html": "style='background-image: url(\"" + html.escape(preview) + "\")'" if preview else '',
+            "style": f"'{height}{width}{background_image}'",
             "prompt": item.get("prompt", None),
             "tabname": json.dumps(tabname),
             "local_preview": json.dumps(item["local_preview"]),
