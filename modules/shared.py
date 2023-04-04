@@ -113,8 +113,7 @@ parser.add_argument("--no-hashing", action='store_true', help="disable sha256 ha
 parser.add_argument("--no-download-sd-model", action='store_true', help="don't download SD1.5 model even if no model is found in --ckpt-dir", default=False)
 
 # token merging / tomesd
-parser.add_argument("--token-merging", action='store_true', help="Provides generation speedup by merging redundant tokens. (compatible with --xformers)", default=False)
-parser.add_argument("--token-merging-ratio", type=float, help="Adjusts ratio of merged to untouched tokens. Range: (0.0-1.0], Defaults to 0.5", default=0.5)
+parser.add_argument("--token-merging", action='store_true', help="Provides speed and memory improvements by merging redundant tokens. This has a more pronounced effect on higher resolutions.", default=False)
 
 
 script_loading.preload_extensions(extensions.extensions_dir, parser)
@@ -525,7 +524,7 @@ options_templates.update(options_section((None, "Hidden options"), {
 
 options_templates.update(options_section(('token_merging', 'Token Merging'), {
     "token_merging": OptionInfo(
-        False, "Enable redundant token merging via tomesd. (currently incompatible with controlnet extension)",
+        0.5, "Enable redundant token merging via tomesd. This can provide significant speed and memory improvements.",
         gr.Checkbox
     ),
     "token_merging_ratio": OptionInfo(
@@ -535,6 +534,10 @@ options_templates.update(options_section(('token_merging', 'Token Merging'), {
     "token_merging_hr_only": OptionInfo(
         True, "Apply only to high-res fix pass. Disabling can yield a ~20-35% speedup on contemporary resolutions.",
         gr.Checkbox
+    ),
+    "token_merging_ratio_hr": OptionInfo(
+        0.5, "Merging Ratio (high-res pass) - If 'Apply only to high-res' is enabled, this will always be the ratio used.",
+        gr.Slider, {"minimum": 0, "maximum": 0.9, "step": 0.1}
     ),
     # More advanced/niche settings:
     "token_merging_random": OptionInfo(
