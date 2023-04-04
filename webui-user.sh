@@ -25,7 +25,8 @@ export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --upcast-sampling
 #export LAUNCH_SCRIPT="launch.py"
 
 # install command for torch
-export TORCH_COMMAND="pip install torch==2.0.0 torchvision==0.15.1"
+export USE_DISTRIBUTED=1
+export TORCH_COMMAND="pip install --pre git+https://github.com/brkirch/pytorch@14f753fbe267eb204d52e42f1fb2c8390867cc70#egg=torch torchvision==0.15.0.dev20230302 -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
 
 # Requirements file to use for stable-diffusion-webui
 #export REQS_FILE="requirements_versions.txt"
