@@ -13,7 +13,7 @@
 export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate"
 
 # python3 executable
-python_cmd="python/3.10.10/bin/python3.10"
+#python_cmd="python3"
 
 # git executable
 #export GIT="git"
@@ -44,9 +44,11 @@ export TORCH_COMMAND="pip install torch==2.0.0 torchvision==0.15.1"
 #export ACCELERATE="True"
 
 # Put transformers cache with the other models
-export TRANSFORMERS_CACHE="models/transformers"
+export TRANSFORMERS_CACHE="$PWD/models/transformers"
 
-# Add git to PATH
-export PATH="$PWD/git/bin:$PATH"
+# Add git and python to PATH
+export PATH="$PWD/python/3.10.10/bin:$PWD/git/bin:$PATH"
+export GIT_EXEC_PATH="$PWD/git/libexec/git-core"
+export GIT_TEMPLATE_DIR="$PWD/git/share/git-core/templates"
 
 ###########################################
