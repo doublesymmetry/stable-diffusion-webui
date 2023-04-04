@@ -115,11 +115,11 @@ def autocast(disable=False):
     if dtype == torch.float32 or shared.cmd_opts.precision == "full":
         return contextlib.nullcontext()
 
-    return torch.autocast("cuda")
+    return torch.autocast("mps" if has_mps() and not torch.cuda.is_available() else "cuda")
 
 
 def without_autocast(disable=False):
-    return torch.autocast("cuda", enabled=False) if torch.is_autocast_enabled() and not disable else contextlib.nullcontext()
+    return torch.autocast("mps" if has_mps() and not torch.cuda.is_available() else "cuda", enabled=False) if torch.is_autocast_enabled() and not disable else contextlib.nullcontext()
 
 
 class NansException(Exception):
