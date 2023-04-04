@@ -58,6 +58,8 @@ def torch_gc():
         with torch.cuda.device(get_cuda_device_string()):
             torch.cuda.empty_cache()
             torch.cuda.ipc_collect()
+    if has_mps() and hasattr(torch, 'mps') and hasattr(torch.mps, 'empty_cache'):
+        torch.mps.empty_cache()
 
 
 def enable_tf32():
