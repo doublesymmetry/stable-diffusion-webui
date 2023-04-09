@@ -10,7 +10,7 @@
 #clone_dir="stable-diffusion-webui"
 
 # Commandline arguments for webui.py, for example: export COMMANDLINE_ARGS="--medvram --opt-split-attention"
-export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --precision full --disable-nan-check --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate"
+#export COMMANDLINE_ARGS=""
 
 # python3 executable
 #python_cmd="python3"
@@ -25,8 +25,7 @@ export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --precision full 
 #export LAUNCH_SCRIPT="launch.py"
 
 # install command for torch
-export USE_DISTRIBUTED=1
-export TORCH_COMMAND="pip install --pre git+https://github.com/brkirch/pytorch@14f753fbe267eb204d52e42f1fb2c8390867cc70#egg=torch torchvision==0.15.0.dev20230302 -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+#export TORCH_COMMAND="pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113"
 
 # Requirements file to use for stable-diffusion-webui
 #export REQS_FILE="requirements_versions.txt"
@@ -43,13 +42,5 @@ export TORCH_COMMAND="pip install --pre git+https://github.com/brkirch/pytorch@1
 
 # Uncomment to enable accelerated launch
 #export ACCELERATE="True"
-
-# Put transformers cache with the other models
-export TRANSFORMERS_CACHE="$PWD/models/transformers"
-
-# Add git and python to PATH
-export PATH="$PWD/python/3.10.10/bin:$PWD/git/bin:$PATH"
-export GIT_EXEC_PATH="$PWD/git/libexec/git-core"
-export GIT_TEMPLATE_DIR="$PWD/git/share/git-core/templates"
 
 ###########################################
