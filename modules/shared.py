@@ -497,7 +497,7 @@ options_templates.update(options_section(('sampler-params', "Sampler parameters"
     "eta_ancestral": OptionInfo(1.0, "eta (noise multiplier) for ancestral samplers", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     "ddim_discretize": OptionInfo('uniform', "img2img DDIM discretize", gr.Radio, {"choices": ['uniform', 'quad']}),
     's_churn': OptionInfo(0.0, "sigma churn", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
-    's_min_uncond': OptionInfo(0, "negative guidance minimum sigma", gr.Slider, {"minimum": 0.0, "maximum": 4.0, "step": 0.01}),
+    's_min_uncond': OptionInfo(3.0, "negative guidance minimum sigma", gr.Slider, {"minimum": 0.0, "maximum": 4.0, "step": 0.01}),
     's_tmin':  OptionInfo(0.0, "sigma tmin",  gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     's_noise': OptionInfo(1.0, "sigma noise", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     'eta_noise_seed_delta': OptionInfo(0, "Eta noise seed delta", gr.Number, {"precision": 0}),
@@ -521,7 +521,7 @@ options_templates.update(options_section((None, "Hidden options"), {
 
 options_templates.update(options_section(('token_merging', 'Token Merging'), {
     "token_merging": OptionInfo(
-        False, "Enable redundant token merging via tomesd. This can provide significant speed and memory improvements.",
+        True, "Enable redundant token merging via tomesd. This can provide significant speed and memory improvements.",
         gr.Checkbox
     ),
     "token_merging_ratio": OptionInfo(
@@ -538,7 +538,7 @@ options_templates.update(options_section(('token_merging', 'Token Merging'), {
     ),
     # More advanced/niche settings:
     "token_merging_random": OptionInfo(
-        True, "Use random perturbations - Disabling might help with certain samplers",
+        False, "Use random perturbations - Disabling might help with certain samplers",
         gr.Checkbox
     ),
     "token_merging_merge_attention": OptionInfo(
