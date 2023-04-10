@@ -4,10 +4,15 @@
 # Please modify webui-user.sh to change these instead of this file #
 ####################################################################
 
-if [[ -x "$(command -v python3.10)" ]]
-then
-    python_cmd="python3.10"
-fi
+delimiter="################################################################"
+
+printf "\n%s\n" "${delimiter}"
+printf "\e[1m\e[31m                          **WARNING**\n"
+printf "\e[1m\e[31m  This is a test build of stable-diffusion-webui and PyTorch!\n"
+printf "\e[1m\e[31mCrashes and bugs are expected, do not assume it will be stable!\n"
+printf "\e[1m\e[31m   DO NOT report issues to the web UI or PyTorch developers!\n"
+printf "\e[1m\e[33mReport issues to github.com/brkirch/stable-diffusion-webui/issues\e[0m"
+printf "\n%s\n" "${delimiter}"
 
 export install_dir="$HOME"
 export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --precision full --no-half-vae --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate"
@@ -24,5 +29,10 @@ export TRANSFORMERS_CACHE="$PWD/models/transformers"
 export PATH="$PWD/python/3.10.10/bin:$PWD/git/bin:$PATH"
 export GIT_EXEC_PATH="$PWD/git/libexec/git-core"
 export GIT_TEMPLATE_DIR="$PWD/git/share/git-core/templates"
+
+if [[ -x "$(command -v python3.10)" ]]
+then
+    python_cmd="python3.10"
+fi
 
 ####################################################################
