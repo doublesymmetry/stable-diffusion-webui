@@ -431,7 +431,6 @@ def load_model(checkpoint_info=None, already_loaded_state_dict=None, time_taken_
     try:
         with sd_disable_initialization.DisableInitialization(disable_clip=clip_is_included_into_sd):
             sd_model = instantiate_from_config(sd_config.model)
-
     except Exception as e:
         pass
 
@@ -560,7 +559,6 @@ def apply_token_merging(sd_model, hr: bool):
     ratio = shared.opts.token_merging_ratio
     if hr:
         ratio = shared.opts.token_merging_ratio_hr
-        print("effective hr pass merge ratio is "+str(ratio))
 
     tomesd.apply_patch(
         sd_model,
