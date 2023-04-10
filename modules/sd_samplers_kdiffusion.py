@@ -118,7 +118,7 @@ class CFGDenoiser(torch.nn.Module):
         tensor = denoiser_params.text_cond
         uncond = denoiser_params.text_uncond
 
-        if not (shared.tomesd_patched and shared.opt.token_merging_disable_min_sigma) and self.step % 2 and s_min_uncond > 0 and not is_edit_model:
+        if not (shared.tomesd_patched and shared.opts.token_merging_disable_min_sigma) and self.step % 2 and s_min_uncond > 0 and not is_edit_model:
             # alternating uncond allows for higher thresholds without the quality loss normally expected from raising it
             sigma_threshold = s_min_uncond
             if(torch.dot(sigma,sigma) < sigma.shape[0] * (sigma_threshold*sigma_threshold) ):
