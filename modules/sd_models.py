@@ -571,3 +571,4 @@ def apply_token_merging(sd_model, hr: bool):
         merge_crossattn=shared.opts.token_merging_merge_cross_attention,
         merge_mlp=shared.opts.token_merging_merge_mlp
     )
+    shared.tomesd_patched = True

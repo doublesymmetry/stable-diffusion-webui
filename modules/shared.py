@@ -497,7 +497,7 @@ options_templates.update(options_section(('sampler-params', "Sampler parameters"
     "eta_ancestral": OptionInfo(1.0, "eta (noise multiplier) for ancestral samplers", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     "ddim_discretize": OptionInfo('uniform', "img2img DDIM discretize", gr.Radio, {"choices": ['uniform', 'quad']}),
     's_churn': OptionInfo(0.0, "sigma churn", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
-    's_min_uncond': OptionInfo(0, "Negative Guidance minimum sigma", gr.Slider, {"minimum": 0.0, "maximum": 4.0, "step": 0.01}),
+    's_min_uncond': OptionInfo(0, "negative guidance minimum sigma", gr.Slider, {"minimum": 0.0, "maximum": 4.0, "step": 0.01}),
     's_tmin':  OptionInfo(0.0, "sigma tmin",  gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     's_noise': OptionInfo(1.0, "sigma noise", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     'eta_noise_seed_delta': OptionInfo(0, "Eta noise seed delta", gr.Number, {"precision": 0}),
@@ -564,6 +564,10 @@ options_templates.update(options_section(('token_merging', 'Token Merging'), {
     "token_merging_stride_y": OptionInfo(
         2, "Stride - Y",
         gr.Slider, {"minimum": 2, "maximum": 8, "step": 2}
+    ),
+    "token_merging_disable_min_sigma": OptionInfo(
+        True, "Disable negative guidance minimum sigma when token merging is active",
+        gr.Checkbox
     )
 }))
 
@@ -737,6 +741,8 @@ sd_upscalers = []
 sd_model = None
 
 clip_model = None
+
+tomesd_patched = False
 
 progress_print_out = sys.stdout
 

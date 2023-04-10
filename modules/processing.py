@@ -512,6 +512,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         # undo model optimizations made by tomesd
         if opts.token_merging:
             tomesd.remove_patch(p.sd_model)
+            shared.tomesd_patched = False
 
         # restore opts to original state
         if p.override_settings_restore_afterwards:
