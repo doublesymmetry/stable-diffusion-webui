@@ -31,12 +31,6 @@ from einops import repeat, rearrange
 from blendmodes.blend import blendLayers, BlendType
 import tomesd
 
-# add a logger for the processing module
-logger = logging.getLogger(__name__)
-# manually set output level here since there is no option to do so yet through launch options
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
-
-
 # some of those options should not be changed at all because they would break the model, so I removed them from options.
 opt_C = 4
 opt_f = 8
@@ -519,7 +513,6 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
 
         if opts.token_merging and not opts.token_merging_hr_only:
             sd_models.apply_token_merging(sd_model=p.sd_model, hr=False)
-            logger.debug('Token merging applied')
 
         res = process_images_inner(p)
 
@@ -528,7 +521,6 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         if opts.token_merging:
             tomesd.remove_patch(p.sd_model)
             shared.tomesd_patched = False
-            logger.debug('Token merging model optimizations removed')
 
         # restore opts to original state
         if p.override_settings_restore_afterwards:
@@ -968,7 +960,6 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
         # apply token merging optimizations from tomesd for high-res pass
         if opts.token_merging and (opts.token_merging_hr_only or opts.token_merging_ratio_hr != opts.token_merging_ratio):
             sd_models.apply_token_merging(sd_model=self.sd_model, hr=True)
-            logger.debug('Applied token merging for high-res pass')
 
         samples = self.sampler.sample_img2img(self, samples, noise, conditioning, unconditional_conditioning, steps=self.hr_second_pass_steps or self.steps, image_conditioning=image_conditioning)
 
