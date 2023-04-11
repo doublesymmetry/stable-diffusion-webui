@@ -306,6 +306,11 @@ Steps: 20, Sampler: Euler a, CFG scale: 7, Seed: 965400086, Size: 512x512, Model
             res["Token merging stride x"] = '2'
         if res.get("Token merging stride y", None) is None:
             res["Token merging stride y"] = '2'
+        if res.get("Token merging allow min uncond", None) is None:
+            res["Token merging allow min uncond"] = 'True'
+
+    if "Negative guidance minimum sigma" not in res:
+        res["Negative guidance minimum sigma"] = "0"
 
     restore_old_hires_fix_params(res)
 
@@ -339,7 +344,9 @@ infotext_to_setting_name_mapping = [
     ('Token merging merge mlp', 'token_merging_merge_mlp'),
     ('Token merging maximum downsampling', 'token_merging_maximum_downsampling'),
     ('Token merging stride x', 'token_merging_stride_x'),
-    ('Token merging stride y', 'token_merging_stride_y')
+    ('Token merging stride y', 'token_merging_stride_y'),
+    ('Token merging allow min uncond', 'token_merging_disable_min_sigma'),
+    ('Negative guidance minimum sigma', 's_min_uncond')
 ]
 
 
