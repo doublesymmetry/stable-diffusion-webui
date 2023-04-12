@@ -141,7 +141,7 @@ class StableDiffusionProcessing:
         self.denoising_strength: float = denoising_strength
         self.sampler_noise_scheduler_override = None
         self.ddim_discretize = ddim_discretize or opts.ddim_discretize
-        self.s_min_uncond = s_min_uncond or opts.s_min_uncond
+        self.s_min_uncond = override_settings.get('s_min_uncond', s_min_uncond or opts.s_min_uncond)
         self.s_churn = s_churn or opts.s_churn
         self.s_tmin = s_tmin or opts.s_tmin
         self.s_tmax = s_tmax or float('inf')  # not representable as a standard ui option
