@@ -17,7 +17,7 @@ printf "\n%s\n" "${delimiter}"
 export install_dir="$HOME"
 export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --no-download-sd-model --precision full --no-half-vae --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate"
 export USE_DISTRIBUTED=1
-export TORCH_COMMAND="pip install --pre git+https://github.com/brkirch/pytorch@df3b3f93f8b81eb1d1bf729b1f65fceba8399a31#egg=torch torchvision==0.15.0.dev20230302 -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+export TORCH_COMMAND="pip install --pre git+https://github.com/brkirch/pytorch@de968a2cf758ff807fa7ea115572a810d0df22fc#egg=torch torchvision==0.15.0.dev20230302 -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
 export K_DIFFUSION_REPO="https://github.com/brkirch/k-diffusion.git"
 export K_DIFFUSION_COMMIT_HASH="c41588ae74e1b51e9f8663106d9843389bf02729"
 export PYTORCH_ENABLE_MPS_FALLBACK=1
