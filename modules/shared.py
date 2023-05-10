@@ -332,8 +332,6 @@ options_templates.update(options_section(('saving-images', "Saving images/grids"
     "save_images_before_face_restoration": OptionInfo(False, "Save a copy of image before doing face restoration."),
     "save_images_before_highres_fix": OptionInfo(False, "Save a copy of image before applying highres fix."),
     "save_images_before_color_correction": OptionInfo(False, "Save a copy of image before applying color correction to img2img results"),
-    "save_mask": OptionInfo(False, "For inpainting, save a copy of the greyscale mask"),
-    "save_mask_composite": OptionInfo(False, "For inpainting, save a masked composite"),
     "jpeg_quality": OptionInfo(80, "Quality for saved jpeg images", gr.Slider, {"minimum": 1, "maximum": 100, "step": 1}),
     "webp_lossless": OptionInfo(False, "Use lossless compression for webp images"),
     "export_for_4chan": OptionInfo(True, "If the saved image file size is above the limit, or its either width or height are above the limit, save a downscaled copy as JPG"),
@@ -422,7 +420,7 @@ options_templates.update(options_section(('sd', "Stable Diffusion"), {
     "enable_batch_seeds": OptionInfo(True, "Make K-diffusion samplers produce same images in a batch as when making a single image"),
     "comma_padding_backtrack": OptionInfo(20, "Increase coherency by padding from the last comma within n tokens when using more than 75 tokens", gr.Slider, {"minimum": 0, "maximum": 74, "step": 1 }),
     "CLIP_stop_at_last_layers": OptionInfo(1, "Clip skip", gr.Slider, {"minimum": 1, "maximum": 12, "step": 1}),
-    "upcast_attn": OptionInfo("Automatic", "Upcast cross attention layer to float32", gr.Dropdown, {"choices": ["Automatic", "Enabled", "Disabled"]}),
+    "upcast_attn": OptionInfo(False, "Upcast cross attention layer to float32"),
 }))
 
 options_templates.update(options_section(('compatibility', "Compatibility"), {
@@ -450,16 +448,12 @@ options_templates.update(options_section(('interrogate', "Interrogate Options"),
 options_templates.update(options_section(('extra_networks', "Extra Networks"), {
     "extra_networks_default_view": OptionInfo("cards", "Default view for Extra Networks", gr.Dropdown, {"choices": ["cards", "thumbs"]}),
     "extra_networks_default_multiplier": OptionInfo(1.0, "Multiplier for extra networks", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
-    "extra_networks_card_width": OptionInfo(0, "Card width for Extra Networks (px)"),
-    "extra_networks_card_height": OptionInfo(0, "Card height for Extra Networks (px)"),
     "extra_networks_add_text_separator": OptionInfo(" ", "Extra text to add before <...> when adding extra network to prompt"),
     "sd_hypernetwork": OptionInfo("None", "Add hypernetwork to prompt", gr.Dropdown, lambda: {"choices": [""] + [x for x in hypernetworks.keys()]}, refresh=reload_hypernetworks),
 }))
 
 options_templates.update(options_section(('ui', "User interface"), {
     "return_grid": OptionInfo(True, "Show grid in results for web"),
-    "return_mask": OptionInfo(False, "For inpainting, include the greyscale mask in results for web"),
-    "return_mask_composite": OptionInfo(False, "For inpainting, include masked composite in results for web"),
     "do_not_show_images": OptionInfo(False, "Do not show any images in results for web"),
     "add_model_hash_to_info": OptionInfo(True, "Add model hash to generation information"),
     "add_model_name_to_info": OptionInfo(True, "Add model name to generation information"),
@@ -497,7 +491,6 @@ options_templates.update(options_section(('sampler-params', "Sampler parameters"
     "eta_ancestral": OptionInfo(1.0, "eta (noise multiplier) for ancestral samplers", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     "ddim_discretize": OptionInfo('uniform', "img2img DDIM discretize", gr.Radio, {"choices": ['uniform', 'quad']}),
     's_churn': OptionInfo(0.0, "sigma churn", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
-    's_min_uncond': OptionInfo(3.0, "negative guidance minimum sigma", gr.Slider, {"minimum": 0.0, "maximum": 4.0, "step": 0.01}),
     's_tmin':  OptionInfo(0.0, "sigma tmin",  gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     's_noise': OptionInfo(1.0, "sigma noise", gr.Slider, {"minimum": 0.0, "maximum": 1.0, "step": 0.01}),
     'eta_noise_seed_delta': OptionInfo(0, "Eta noise seed delta", gr.Number, {"precision": 0}),
@@ -517,58 +510,6 @@ options_templates.update(options_section(('postprocessing', "Postprocessing"), {
 options_templates.update(options_section((None, "Hidden options"), {
     "disabled_extensions": OptionInfo([], "Disable those extensions"),
     "sd_checkpoint_hash": OptionInfo("", "SHA256 hash of the current checkpoint"),
-}))
-
-options_templates.update(options_section(('token_merging', 'Token Merging'), {
-    "token_merging": OptionInfo(
-        True, "Enable redundant token merging via tomesd. This can provide significant speed and memory improvements.",
-        gr.Checkbox
-    ),
-    "token_merging_ratio": OptionInfo(
-        0.5, "Merging Ratio",
-        gr.Slider, {"minimum": 0, "maximum": 0.9, "step": 0.1}
-    ),
-    "token_merging_hr_only": OptionInfo(
-        True, "Apply only to high-res fix pass. Disabling can yield a ~20-35% speedup on contemporary resolutions.",
-        gr.Checkbox
-    ),
-    "token_merging_ratio_hr": OptionInfo(
-        0.5, "Merging Ratio (high-res pass) - If 'Apply only to high-res' is enabled, this will always be the ratio used.",
-        gr.Slider, {"minimum": 0, "maximum": 0.9, "step": 0.1}
-    ),
-    # More advanced/niche settings:
-    "token_merging_random": OptionInfo(
-        False, "Use random perturbations - Can improve outputs for certain samplers. For others, it may cause visual artifacting.",
-        gr.Checkbox
-    ),
-    "token_merging_merge_attention": OptionInfo(
-        True, "Merge attention",
-        gr.Checkbox
-    ),
-     "token_merging_merge_cross_attention": OptionInfo(
-        False, "Merge cross attention",
-        gr.Checkbox
-    ),
-    "token_merging_merge_mlp": OptionInfo(
-        False, "Merge mlp",
-        gr.Checkbox
-    ),
-    "token_merging_maximum_down_sampling": OptionInfo(
-        1, "Maximum down sampling",
-        gr.Dropdown, lambda: {"choices": [1, 2, 4, 8]}
-    ),
-    "token_merging_stride_x": OptionInfo(
-        2, "Stride - X",
-        gr.Slider, {"minimum": 2, "maximum": 8, "step": 2}
-    ),
-    "token_merging_stride_y": OptionInfo(
-        2, "Stride - Y",
-        gr.Slider, {"minimum": 2, "maximum": 8, "step": 2}
-    ),
-    "token_merging_disable_min_sigma": OptionInfo(
-        True, "Disable negative guidance minimum sigma when token merging is active",
-        gr.Checkbox
-    )
 }))
 
 options_templates.update()
@@ -741,8 +682,6 @@ sd_upscalers = []
 sd_model = None
 
 clip_model = None
-
-tomesd_patched = False
 
 progress_print_out = sys.stdout
 

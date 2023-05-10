@@ -3,7 +3,7 @@ import os
 
 import torch
 
-from modules import shared, paths, sd_disable_initialization, devices
+from modules import shared, paths, sd_disable_initialization
 
 sd_configs_path = shared.sd_configs_path
 sd_repo_configs_path = os.path.join(paths.paths['Stable Diffusion'], "configs", "stable-diffusion")
@@ -14,8 +14,6 @@ config_sd2 = os.path.join(sd_repo_configs_path, "v2-inference.yaml")
 config_sd2v = os.path.join(sd_repo_configs_path, "v2-inference-v.yaml")
 config_sd2_inpainting = os.path.join(sd_repo_configs_path, "v2-inpainting-inference.yaml")
 config_depth_model = os.path.join(sd_repo_configs_path, "v2-midas-inference.yaml")
-config_unclip = os.path.join(sd_repo_configs_path, "v2-1-stable-unclip-l-inference.yaml")
-config_unopenclip = os.path.join(sd_repo_configs_path, "v2-1-stable-unclip-h-inference.yaml")
 config_inpainting = os.path.join(sd_configs_path, "v1-inpainting-inference.yaml")
 config_instruct_pix2pix = os.path.join(sd_configs_path, "instruct-pix2pix.yaml")
 config_alt_diffusion = os.path.join(sd_configs_path, "alt-diffusion-inference.yaml")
@@ -67,22 +65,14 @@ def is_using_v_parameterization_for_sd2(state_dict):
 def guess_model_config_from_state_dict(sd, filename):
     sd2_cond_proj_weight = sd.get('cond_stage_model.model.transformer.resblocks.0.attn.in_proj_weight', None)
     diffusion_model_input = sd.get('model.diffusion_model.input_blocks.0.0.weight', None)
-    sd2_variations_weight = sd.get('embedder.model.ln_final.weight', None)
 
     if sd.get('depth_model.model.pretrained.act_postprocess3.0.project.0.bias', None) is not None:
         return config_depth_model
-    elif sd2_variations_weight is not None and sd2_variations_weight.shape[0] == 768:
-        devices.attn_needs_upcast = True
-        return config_unclip
-    elif sd2_variations_weight is not None and sd2_variations_weight.shape[0] == 1024:
-        devices.attn_needs_upcast = True
-        return config_unopenclip
 
     if sd2_cond_proj_weight is not None and sd2_cond_proj_weight.shape[1] == 1024:
         if diffusion_model_input.shape[1] == 9:
             return config_sd2_inpainting
         elif is_using_v_parameterization_for_sd2(sd):
-            devices.attn_needs_upcast = True
             return config_sd2v
         else:
             return config_sd2
@@ -100,18 +90,14 @@ def guess_model_config_from_state_dict(sd, filename):
 
 
 def find_checkpoint_config(state_dict, info):
-    devices.attn_needs_upcast = False
-
     if info is None:
         return guess_model_config_from_state_dict(state_dict, "")
-
-    guessed_config = guess_model_config_from_state_dict(state_dict, info.filename)
 
     config = find_checkpoint_config_near_filename(info)
     if config is not None:
         return config
 
-    return guessed_config
+    return guess_model_config_from_state_dict(state_dict, info.filename)
 
 
 def find_checkpoint_config_near_filename(info):

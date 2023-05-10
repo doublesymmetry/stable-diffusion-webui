@@ -30,4 +30,3 @@ GitPython
 torchsde
 safetensors
 psutil
-rich

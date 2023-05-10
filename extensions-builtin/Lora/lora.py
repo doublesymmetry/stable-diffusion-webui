@@ -178,7 +178,6 @@ def load_loras(names, multipliers=None):
 
 
 def lora_forward(module, input, res):
-    input = devices.cond_cast_unet(input)
     if len(loaded_loras) == 0:
         return res
 

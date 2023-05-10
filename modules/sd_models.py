@@ -16,7 +16,6 @@ from modules import paths, shared, modelloader, devices, script_callbacks, sd_va
 from modules.paths import models_path
 from modules.sd_hijack_inpainting import do_inpainting_hijack
 from modules.timer import Timer
-import tomesd
 
 model_dir = "Stable-diffusion"
 model_path = os.path.abspath(os.path.join(paths.models_path, model_dir))
@@ -179,7 +178,7 @@ def select_checkpoint():
     return checkpoint_info
 
 
-checkpoint_dict_replacements = {
+chckpoint_dict_replacements = {
     'cond_stage_model.transformer.embeddings.': 'cond_stage_model.transformer.text_model.embeddings.',
     'cond_stage_model.transformer.encoder.': 'cond_stage_model.transformer.text_model.encoder.',
     'cond_stage_model.transformer.final_layer_norm.': 'cond_stage_model.transformer.text_model.final_layer_norm.',
@@ -187,7 +186,7 @@ checkpoint_dict_replacements = {
 
 
 def transform_checkpoint_dict_key(k):
-    for text, replacement in checkpoint_dict_replacements.items():
+    for text, replacement in chckpoint_dict_replacements.items():
         if k.startswith(text):
             k = replacement + k[len(text):]
 
@@ -384,14 +383,6 @@ def repair_config(sd_config):
     elif shared.cmd_opts.upcast_sampling:
         sd_config.model.params.unet_config.params.use_fp16 = True
 
-    if getattr(sd_config.model.params.first_stage_config.params.ddconfig, "attn_type", None) == "vanilla-xformers" and not shared.xformers_available:
-        sd_config.model.params.first_stage_config.params.ddconfig.attn_type = "vanilla"
-
-    # For UnCLIP-L, override the hardcoded karlo directory
-    if hasattr(sd_config.model.params, "noise_aug_config") and hasattr(sd_config.model.params.noise_aug_config.params, "clip_stats_path"):
-        karlo_path = os.path.join(paths.models_path, 'karlo')
-        sd_config.model.params.noise_aug_config.params.clip_stats_path = sd_config.model.params.noise_aug_config.params.clip_stats_path.replace("checkpoints/karlo_models", karlo_path)
-
 
 sd1_clip_weight = 'cond_stage_model.transformer.text_model.embeddings.token_embedding.weight'
 sd2_clip_weight = 'cond_stage_model.model.transformer.resblocks.0.attn.in_proj_weight'
@@ -503,7 +494,7 @@ def reload_model_weights(sd_model=None, info=None):
     if sd_model is None or checkpoint_config != sd_model.used_config:
         del sd_model
         checkpoints_loaded.clear()
-        load_model(checkpoint_info, already_loaded_state_dict=state_dict)
+        load_model(checkpoint_info, already_loaded_state_dict=state_dict, time_taken_to_load_state_dict=timer.records["load weights from disk"])
         return shared.sd_model
 
     try:
@@ -526,49 +517,3 @@ def reload_model_weights(sd_model=None, info=None):
     print(f"Weights loaded in {timer.summary()}.")
 
     return sd_model
-
-def unload_model_weights(sd_model=None, info=None):
-    from modules import lowvram, devices, sd_hijack
-    timer = Timer()
-
-    if shared.sd_model:
-
-        # shared.sd_model.cond_stage_model.to(devices.cpu)
-        # shared.sd_model.first_stage_model.to(devices.cpu)
-        shared.sd_model.to(devices.cpu)
-        sd_hijack.model_hijack.undo_hijack(shared.sd_model)
-        shared.sd_model = None
-        sd_model = None
-        gc.collect()
-        devices.torch_gc()
-        torch.cuda.empty_cache()
-
-    print(f"Unloaded weights {timer.summary()}.")
-
-    return sd_model
-
-
-def apply_token_merging(sd_model, hr: bool):
-    """
-    Applies speed and memory optimizations from tomesd.
-
-    Args:
-        hr (bool): True if called in the context of a high-res pass
-    """
-
-    ratio = shared.opts.token_merging_ratio
-    if hr:
-        ratio = shared.opts.token_merging_ratio_hr
-
-    tomesd.apply_patch(
-        sd_model,
-        ratio=ratio,
-        max_downsample=shared.opts.token_merging_maximum_down_sampling,
-        sx=shared.opts.token_merging_stride_x,
-        sy=shared.opts.token_merging_stride_y,
-        use_rand=shared.opts.token_merging_random,
-        merge_attn=shared.opts.token_merging_merge_attention,
-        merge_crossattn=shared.opts.token_merging_merge_cross_attention,
-        merge_mlp=shared.opts.token_merging_merge_mlp
-    )
-    shared.tomesd_patched = True

@@ -14,7 +14,7 @@ parser.add_argument("--data-dir", type=str, default=os.path.dirname(os.path.real
 args, _ = parser.parse_known_args(sys.argv)
 
 script_path = os.path.dirname(__file__)
-data_path = args.data_dir
+data_path = os.getcwd()
 
 dir_repos = "repositories"
 dir_extensions = "extensions"
@@ -24,7 +24,6 @@ index_url = os.environ.get('INDEX_URL', "")
 stored_commit_hash = None
 skip_install = False
 
-os.environ['GRADIO_ANALYTICS_ENABLED'] = 'False'
 
 def check_python_version():
     is_windows = platform.system() == "Windows"
@@ -232,7 +231,7 @@ def run_extensions_installers(settings_file):
         return
 
     for dirname_extension in list_extensions(settings_file):
-        run_extension_installer(os.path.join(data_path, dir_extensions, dirname_extension))
+        run_extension_installer(os.path.join(dir_extensions, dirname_extension))
 
 
 def prepare_environment():
@@ -253,7 +252,7 @@ def prepare_environment():
     codeformer_repo = os.environ.get('CODEFORMER_REPO', 'https://github.com/sczhou/CodeFormer.git')
     blip_repo = os.environ.get('BLIP_REPO', 'https://github.com/salesforce/BLIP.git')
 
-    stable_diffusion_commit_hash = os.environ.get('STABLE_DIFFUSION_COMMIT_HASH', "cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf")
+    stable_diffusion_commit_hash = os.environ.get('STABLE_DIFFUSION_COMMIT_HASH', "47b6b607fdd31875c9279cd2f4f16b92e4ea958e")
     taming_transformers_commit_hash = os.environ.get('TAMING_TRANSFORMERS_COMMIT_HASH', "24268930bf1dce879235a7fddd0b2355b84d7ea6")
     k_diffusion_commit_hash = os.environ.get('K_DIFFUSION_COMMIT_HASH', "5b3af030dd83e0297272d861c19477735d0317ec")
     codeformer_commit_hash = os.environ.get('CODEFORMER_COMMIT_HASH', "c5b4593074ba6214284d6acd5f1719b6c5d739af")
