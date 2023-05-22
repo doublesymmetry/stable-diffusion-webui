@@ -107,6 +107,7 @@ StableDiffusionTxt2ImgProcessingAPI = PydanticModelGenerator(
         {"key": "send_images", "type": bool, "default": True},
         {"key": "save_images", "type": bool, "default": False},
         {"key": "alwayson_scripts", "type": dict, "default": {}},
+        {"key": "generation_id", "type": str, "default": None},
     ]
 ).generate_model()
 
@@ -181,11 +182,26 @@ class PNGInfoResponse(BaseModel):
 class ProgressRequest(BaseModel):
     skip_current_image: bool = Field(default=False, title="Skip current image", description="Skip current image serialization")
 
+class NewProgressRequest(BaseModel):
+    id_task: str = Field(default=None, title="Task ID", description="id of the task to get progress for")
+
+class CancelRequest(BaseModel):
+    id_task: str = Field(default=None, title="Task ID", description="id of the task to cancel")
+
 class ProgressResponse(BaseModel):
     progress: float = Field(title="Progress", description="The progress with a range of 0 to 1")
     eta_relative: float = Field(title="ETA in secs")
     state: dict = Field(title="State", description="The current state snapshot")
     current_image: str = Field(default=None, title="Current image", description="The current image in base64 format. opts.show_progress_every_n_steps is required for this to work.")
+    textinfo: str = Field(default=None, title="Info text", description="Info text used by WebUI.")
+
+class NewProgressResponse(BaseModel):
+    active: bool = Field(title="Whether the task is being worked on right now")
+    queued: bool = Field(title="Whether the task is in queue")
+    completed: bool = Field(title="Whether the task has already finished")
+    progress: float = Field(default=None, title="Progress", description="The progress with a range of 0 to 1")
+    eta: float = Field(default=None, title="ETA in secs")
+    live_preview: str = Field(default=None, title="Live preview image", description="Current live preview; a data: uri")
     textinfo: str = Field(default=None, title="Info text", description="Info text used by WebUI.")
 
 class InterrogateRequest(BaseModel):
