@@ -474,7 +474,8 @@ class Api:
         completed = req.id_task in jobs.finished_tasks
 
         if not active:
-            return NewProgressResponse(active=active, queued=queued, completed=completed, eta=len(jobs.pending_tasks), textinfo="In queue..." if queued else "Waiting...")
+            position_in_queue = sum(1 for job_id, timestamp in jobs.pending_tasks.items() if timestamp < jobs.pending_tasks[req.id_task]) + 1
+            return NewProgressResponse(active=active, queued=queued, completed=completed, eta=position_in_queue, textinfo="In queue..." if queued else "Waiting...")
 
         progress = 0
 
