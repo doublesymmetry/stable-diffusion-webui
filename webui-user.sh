@@ -11,7 +11,13 @@
 
 # Commandline arguments for webui.py, for example: export COMMANDLINE_ARGS="--medvram --opt-split-attention"
 #export COMMANDLINE_ARGS=""
-export COMMANDLINE_ARGS="--skip-torch-cuda-test --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate --listen --nowebui --port=7860 --cors-allow-origins=*"
+
+# check if macos, if so set commandline args
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export COMMANDLINE_ARGS="--skip-torch-cuda-test --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate --listen --nowebui --port=7860 --cors-allow-origins=*"
+else
+    export COMMANDLINE_ARGS="--listen --nowebui --port=7860 --cors-allow-origins=*"
+fi
 
 # python3 executable
 #python_cmd="python3"
