@@ -34,7 +34,11 @@ venv_dir="venv-torch-nightly"
 
 # install command for torch
 #export TORCH_COMMAND="pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113"
-export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+else
+    export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html"
+fi
 
 # Requirements file to use for stable-diffusion-webui
 #export REQS_FILE="requirements_versions.txt"
