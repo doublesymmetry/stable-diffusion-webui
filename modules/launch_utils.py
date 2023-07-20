@@ -150,6 +150,9 @@ def git_clone(url, dir, name, commithash=None):
         if current_hash == commithash:
             return
 
+        if run(f'"{git}" -C "{dir}" config --get remote.origin.url', None, f"Couldn't determine {name}'s origin URL", live=False).strip() != url:
+            run(f'"{git}" -C "{dir}" remote set-url origin "{url}"', None, f"Failed to set {name}'s origin URL", live=False)
+
         run(f'"{git}" -C "{dir}" fetch', f"Fetching updates for {name}...", f"Couldn't fetch {name}")
         run(f'"{git}" -C "{dir}" checkout {commithash}', f"Checking out commit for {name} with hash: {commithash}...", f"Couldn't checkout commit {commithash} for {name}", live=True)
         return
