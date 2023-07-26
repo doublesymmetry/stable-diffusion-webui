@@ -78,6 +78,8 @@ function setupTokenCounting(id, id_counter, id_button) {
 function setupTokenCounters() {
     setupTokenCounting('txt2img_prompt', 'txt2img_token_counter', 'txt2img_token_button');
     setupTokenCounting('txt2img_neg_prompt', 'txt2img_negative_token_counter', 'txt2img_negative_token_button');
+    setupTokenCounting('txt2img_style_prompt', 'txt2img_style_token_counter', 'txt2img_style_token_button');
     setupTokenCounting('img2img_prompt', 'img2img_token_counter', 'img2img_token_button');
     setupTokenCounting('img2img_neg_prompt', 'img2img_negative_token_counter', 'img2img_negative_token_button');
+    setupTokenCounting('img2img_style_prompt', 'img2img_style_token_counter', 'img2img_style_token_button');
 }

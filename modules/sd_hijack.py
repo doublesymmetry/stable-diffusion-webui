@@ -200,6 +200,8 @@ class StableDiffusionModelHijack:
                     embedder.model.token_embedding = EmbeddingsWithFixes(embedder.model.token_embedding, self)
                     conditioner.embedders[i] = sd_hijack_open_clip.FrozenOpenCLIPEmbedder2WithCustomWords(embedder, self)
                     text_cond_models.append(conditioner.embedders[i])
+                    if len(text_cond_models) >= 2:
+                        text_cond_models[-1].input_key = 'txt2'
 
             if len(text_cond_models) == 1:
                 m.cond_stage_model = text_cond_models[0]
