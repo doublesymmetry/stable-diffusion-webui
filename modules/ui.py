@@ -282,11 +282,6 @@ def create_toprow(is_img2img):
                     with gr.Row():
                         negative_prompt = gr.Textbox(label="Negative prompt", elem_id=f"{id_part}_neg_prompt", show_label=False, lines=3, placeholder="Negative prompt (press Ctrl+Enter or Alt+Enter to generate)", elem_classes=["prompt"])
 
-            with gr.Row():
-                with gr.Column(scale=80):
-                    with gr.Row():
-                        style_prompt = gr.Textbox(label="Style prompt", elem_id=f"{id_part}_style_prompt", show_label=False, lines=3, placeholder="Style prompt (press Ctrl+Enter or Alt+Enter to generate)", elem_classes=["prompt"])
-
         button_interrogate = None
         button_deepbooru = None
         if is_img2img:
@@ -324,21 +319,19 @@ def create_toprow(is_img2img):
                 token_button = gr.Button(visible=False, elem_id=f"{id_part}_token_button")
                 negative_token_counter = gr.HTML(value="<span>0/75</span>", elem_id=f"{id_part}_negative_token_counter", elem_classes=["token-counter"])
                 negative_token_button = gr.Button(visible=False, elem_id=f"{id_part}_negative_token_button")
-                style_token_counter = gr.HTML(value="<span>0/75</span>", elem_id=f"{id_part}_style_token_counter", elem_classes=["token-counter"])
-                style_token_button = gr.Button(visible=False, elem_id=f"{id_part}_style_token_button")
 
                 clear_prompt_button.click(
                     fn=lambda *x: x,
                     _js="confirm_clear_prompt",
-                    inputs=[prompt, negative_prompt, style_prompt],
-                    outputs=[prompt, negative_prompt, style_prompt],
+                    inputs=[prompt, negative_prompt],
+                    outputs=[prompt, negative_prompt],
                 )
 
             with gr.Row(elem_id=f"{id_part}_styles_row"):
                 prompt_styles = gr.Dropdown(label="Styles", elem_id=f"{id_part}_styles", choices=[k for k, v in shared.prompt_styles.styles.items()], value=[], multiselect=True)
                 create_refresh_button(prompt_styles, shared.prompt_styles.reload, lambda: {"choices": [k for k, v in shared.prompt_styles.styles.items()]}, f"refresh_{id_part}_styles")
 
-    return prompt, prompt_styles, negative_prompt, style_prompt, submit, button_interrogate, button_deepbooru, prompt_style_apply, save_style, paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, style_token_counter, style_token_button, restore_progress_button
+    return prompt, prompt_styles, negative_prompt, submit, button_interrogate, button_deepbooru, prompt_style_apply, save_style, paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, restore_progress_button
 
 
 def setup_progressbar(*args, **kwargs):
@@ -426,7 +419,7 @@ def create_ui():
     modules.scripts.scripts_txt2img.initialize_scripts(is_img2img=False)
 
     with gr.Blocks(analytics_enabled=False) as txt2img_interface:
-        txt2img_prompt, txt2img_prompt_styles, txt2img_negative_prompt, txt2img_style_prompt, submit, _, _, txt2img_prompt_style_apply, txt2img_save_style, txt2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, style_token_counter, style_token_button, restore_progress_button = create_toprow(is_img2img=False)
+        txt2img_prompt, txt2img_prompt_styles, txt2img_negative_prompt, submit, _, _, txt2img_prompt_style_apply, txt2img_save_style, txt2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, restore_progress_button = create_toprow(is_img2img=False)
 
         dummy_component = gr.Label(visible=False)
         txt_prompt_img = gr.File(label="", elem_id="txt2img_prompt_image", file_count="single", type="binary", visible=False)
@@ -492,9 +485,6 @@ def create_ui():
                                 with gr.Column(scale=80):
                                     with gr.Row():
                                         hr_negative_prompt = gr.Textbox(label="Hires negative prompt", elem_id="hires_neg_prompt", show_label=False, lines=3, placeholder="Negative prompt for hires fix pass.\nLeave empty to use the same negative prompt as in first pass.", elem_classes=["prompt"])
-                                with gr.Column(scale=80):
-                                    with gr.Row():
-                                        hr_style_prompt = gr.Textbox(label="Hires style prompt", elem_id="hires_style_prompt", show_label=False, lines=3, placeholder="Style prompt for hires fix pass.\nLeave empty to use the same negative prompt as in first pass.", elem_classes=["prompt"])
 
                     elif category == "batch":
                         if not opts.dimensions_and_batch_together:
@@ -544,7 +534,6 @@ def create_ui():
                     dummy_component,
                     txt2img_prompt,
                     txt2img_negative_prompt,
-                    txt2img_style_prompt,
                     txt2img_prompt_styles,
                     steps,
                     sampler_index,
@@ -567,7 +556,6 @@ def create_ui():
                     hr_sampler_index,
                     hr_prompt,
                     hr_negative_prompt,
-                    hr_style_prompt,
                     override_settings,
 
                 ] + custom_inputs,
@@ -667,7 +655,6 @@ def create_ui():
 
             token_button.click(fn=wrap_queued_call(update_token_counter), inputs=[txt2img_prompt, steps], outputs=[token_counter])
             negative_token_button.click(fn=wrap_queued_call(update_token_counter), inputs=[txt2img_negative_prompt, steps], outputs=[negative_token_counter])
-            style_token_button.click(fn=wrap_queued_call(update_token_counter), inputs=[txt2img_style_prompt, steps], outputs=[style_token_counter])
 
             ui_extra_networks.setup_ui(extra_networks_ui, txt2img_gallery)
 
@@ -675,7 +662,7 @@ def create_ui():
     modules.scripts.scripts_img2img.initialize_scripts(is_img2img=True)
 
     with gr.Blocks(analytics_enabled=False) as img2img_interface:
-        img2img_prompt, img2img_prompt_styles, img2img_negative_prompt, img2img_style_prompt, submit, img2img_interrogate, img2img_deepbooru, img2img_prompt_style_apply, img2img_save_style, img2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, style_token_counter, style_token_button, restore_progress_button = create_toprow(is_img2img=True)
+        img2img_prompt, img2img_prompt_styles, img2img_negative_prompt, submit, img2img_interrogate, img2img_deepbooru, img2img_prompt_style_apply, img2img_save_style, img2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, restore_progress_button = create_toprow(is_img2img=True)
 
         img2img_prompt_img = gr.File(label="", elem_id="img2img_prompt_image", file_count="single", type="binary", visible=False)
 
@@ -916,7 +903,6 @@ def create_ui():
                     dummy_component,
                     img2img_prompt,
                     img2img_negative_prompt,
-                    img2img_style_prompt,
                     img2img_prompt_styles,
                     init_img,
                     sketch,
@@ -1039,7 +1025,6 @@ def create_ui():
 
             token_button.click(fn=update_token_counter, inputs=[img2img_prompt, steps], outputs=[token_counter])
             negative_token_button.click(fn=wrap_queued_call(update_token_counter), inputs=[img2img_negative_prompt, steps], outputs=[negative_token_counter])
-            style_token_button.click(fn=wrap_queued_call(update_token_counter), inputs=[img2img_style_prompt, steps], outputs=[style_token_counter])
 
             ui_extra_networks.setup_ui(extra_networks_ui_img2img, img2img_gallery)
 

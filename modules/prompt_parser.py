@@ -116,10 +116,8 @@ class SdConditioning(list):
     A list with prompts for stable diffusion's conditioner model.
     Can also specify width and height of created image - SDXL needs it.
     """
-    def __init__(self, prompts, style_prompts=None, is_negative_prompt=False, width=None, height=None, copy_from=None):
+    def __init__(self, prompts, is_negative_prompt=False, width=None, height=None, copy_from=None):
         super().__init__()
-        if style_prompts:
-            style_prompts = SdConditioning(style_prompts, is_negative_prompt=is_negative_prompt, width=width, height=height, copy_from=copy_from)
         self.extend(prompts)
 
         if copy_from is None:
@@ -128,7 +126,6 @@ class SdConditioning(list):
         self.is_negative_prompt = is_negative_prompt or getattr(copy_from, 'is_negative_prompt', False)
         self.width = width or getattr(copy_from, 'width', None)
         self.height = height or getattr(copy_from, 'height', None)
-        self.style_prompts = style_prompts if style_prompts is [''] or style_prompts else getattr(copy_from, 'style_prompts', [''])
 
 
 

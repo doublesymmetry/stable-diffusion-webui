@@ -109,7 +109,7 @@ class StableDiffusionProcessing:
     cached_uc = [None, None]
     cached_c = [None, None]
 
-    def __init__(self, sd_model=None, outpath_samples=None, outpath_grids=None, prompt: str = "", styles: List[str] = None, seed: int = -1, subseed: int = -1, subseed_strength: float = 0, seed_resize_from_h: int = -1, seed_resize_from_w: int = -1, seed_enable_extras: bool = True, sampler_name: str = None, batch_size: int = 1, n_iter: int = 1, steps: int = 50, cfg_scale: float = 7.0, width: int = 512, height: int = 512, restore_faces: bool = False, tiling: bool = False, do_not_save_samples: bool = False, do_not_save_grid: bool = False, extra_generation_params: Dict[Any, Any] = None, overlay_images: Any = None, negative_prompt: str = None, style_prompt: str = None, eta: float = None, do_not_reload_embeddings: bool = False, denoising_strength: float = 0, ddim_discretize: str = None, s_min_uncond: float = 0.0, s_churn: float = 0.0, s_tmax: float = None, s_tmin: float = 0.0, s_noise: float = 1.0, override_settings: Dict[str, Any] = None, override_settings_restore_afterwards: bool = True, sampler_index: int = None, script_args: list = None):
+    def __init__(self, sd_model=None, outpath_samples=None, outpath_grids=None, prompt: str = "", styles: List[str] = None, seed: int = -1, subseed: int = -1, subseed_strength: float = 0, seed_resize_from_h: int = -1, seed_resize_from_w: int = -1, seed_enable_extras: bool = True, sampler_name: str = None, batch_size: int = 1, n_iter: int = 1, steps: int = 50, cfg_scale: float = 7.0, width: int = 512, height: int = 512, restore_faces: bool = False, tiling: bool = False, do_not_save_samples: bool = False, do_not_save_grid: bool = False, extra_generation_params: Dict[Any, Any] = None, overlay_images: Any = None, negative_prompt: str = None, eta: float = None, do_not_reload_embeddings: bool = False, denoising_strength: float = 0, ddim_discretize: str = None, s_min_uncond: float = 0.0, s_churn: float = 0.0, s_tmax: float = None, s_tmin: float = 0.0, s_noise: float = 1.0, override_settings: Dict[str, Any] = None, override_settings_restore_afterwards: bool = True, sampler_index: int = None, script_args: list = None):
         if sampler_index is not None:
             print("sampler_index argument for StableDiffusionProcessing does not do anything; use sampler_name", file=sys.stderr)
 
@@ -118,7 +118,6 @@ class StableDiffusionProcessing:
         self.prompt: str = prompt
         self.prompt_for_display: str = None
         self.negative_prompt: str = (negative_prompt or "")
-        self.style_prompt: str = (style_prompt or "")
         self.styles: list = styles or []
         self.seed: int = seed
         self.subseed: int = subseed
@@ -167,7 +166,6 @@ class StableDiffusionProcessing:
         self.script_args = script_args
         self.all_prompts = None
         self.all_negative_prompts = None
-        self.all_style_prompts = None
         self.all_seeds = None
         self.all_subseeds = None
         self.iteration = 0
@@ -176,7 +174,6 @@ class StableDiffusionProcessing:
 
         self.prompts = None
         self.negative_prompts = None
-        self.style_prompts = None
         self.extra_network_data = None
         self.seeds = None
         self.subseeds = None
@@ -318,14 +315,8 @@ class StableDiffusionProcessing:
         else:
             self.all_negative_prompts = self.batch_size * self.n_iter * [self.negative_prompt]
 
-        if type(self.style_prompt) == list:
-            self.all_style_prompts = self.style_prompt
-        else:
-            self.all_style_prompts = self.batch_size * self.n_iter * [self.style_prompt]
-
         self.all_prompts = [shared.prompt_styles.apply_styles_to_prompt(x, self.styles) for x in self.all_prompts]
         self.all_negative_prompts = [shared.prompt_styles.apply_negative_styles_to_prompt(x, self.styles) for x in self.all_negative_prompts]
-        self.all_style_prompts = [x for x in self.all_style_prompts]
 
     def get_conds_with_caching(self, function, required_prompts, steps, caches, extra_network_data):
         """
@@ -365,7 +356,7 @@ class StableDiffusionProcessing:
         return cache[1]
 
     def setup_conds(self):
-        prompts = prompt_parser.SdConditioning(self.prompts, style_prompts=prompt_parser.SdConditioning(self.style_prompts, width=self.width, height=self.height), width=self.width, height=self.height)
+        prompts = prompt_parser.SdConditioning(self.prompts, width=self.width, height=self.height)
         negative_prompts = prompt_parser.SdConditioning(self.negative_prompts, width=self.width, height=self.height, is_negative_prompt=True)
 
         sampler_config = sd_samplers.find_sampler_config(self.sampler_name)
@@ -378,11 +369,10 @@ class StableDiffusionProcessing:
 
 
 class Processed:
-    def __init__(self, p: StableDiffusionProcessing, images_list, seed=-1, info="", subseed=None, all_prompts=None, all_negative_prompts=None, all_style_prompts=None, all_seeds=None, all_subseeds=None, index_of_first_image=0, infotexts=None, comments=""):
+    def __init__(self, p: StableDiffusionProcessing, images_list, seed=-1, info="", subseed=None, all_prompts=None, all_negative_prompts=None, all_seeds=None, all_subseeds=None, index_of_first_image=0, infotexts=None, comments=""):
         self.images = images_list
         self.prompt = p.prompt
         self.negative_prompt = p.negative_prompt
-        self.style_prompt = p.style_prompt
         self.seed = seed
         self.subseed = subseed
         self.subseed_strength = p.subseed_strength
@@ -419,14 +409,12 @@ class Processed:
         self.sampler_noise_scheduler_override = p.sampler_noise_scheduler_override
         self.prompt = self.prompt if type(self.prompt) != list else self.prompt[0]
         self.negative_prompt = self.negative_prompt if type(self.negative_prompt) != list else self.negative_prompt[0]
-        self.style_prompt = self.style_prompt if type(self.style_prompt) != list else self.style_prompt[0]
         self.seed = int(self.seed if type(self.seed) != list else self.seed[0]) if self.seed is not None else -1
         self.subseed = int(self.subseed if type(self.subseed) != list else self.subseed[0]) if self.subseed is not None else -1
         self.is_using_inpainting_conditioning = p.is_using_inpainting_conditioning
 
         self.all_prompts = all_prompts or p.all_prompts or [self.prompt]
         self.all_negative_prompts = all_negative_prompts or p.all_negative_prompts or [self.negative_prompt]
-        self.all_style_prompts = all_style_prompts or p.all_style_prompts or [self.style_prompt]
         self.all_seeds = all_seeds or p.all_seeds or [self.seed]
         self.all_subseeds = all_subseeds or p.all_subseeds or [self.subseed]
         self.infotexts = infotexts or [info]
@@ -437,8 +425,6 @@ class Processed:
             "all_prompts": self.all_prompts,
             "negative_prompt": self.all_negative_prompts[0],
             "all_negative_prompts": self.all_negative_prompts,
-            "style_prompt": self.all_style_prompts[0],
-            "all_style_prompts": self.all_style_prompts,
             "seed": self.seed,
             "all_seeds": self.all_seeds,
             "subseed": self.subseed,
@@ -733,14 +719,12 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
     def infotext(iteration=0, position_in_batch=0, use_main_prompt=False):
         all_prompts = p.all_prompts[:]
         all_negative_prompts = p.all_negative_prompts[:]
-        all_style_prompts = p.all_style_prompts[:]
         all_seeds = p.all_seeds[:]
         all_subseeds = p.all_subseeds[:]
 
         # apply changes to generation data
         all_prompts[iteration * p.batch_size:(iteration + 1) * p.batch_size] = p.prompts
         all_negative_prompts[iteration * p.batch_size:(iteration + 1) * p.batch_size] = p.negative_prompts
-        all_style_prompts[iteration * p.batch_size:(iteration + 1) * p.batch_size] = p.style_prompts
         all_seeds[iteration * p.batch_size:(iteration + 1) * p.batch_size] = p.seeds
         all_subseeds[iteration * p.batch_size:(iteration + 1) * p.batch_size] = p.subseeds
 
@@ -788,7 +772,6 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
 
             p.prompts = p.all_prompts[n * p.batch_size:(n + 1) * p.batch_size]
             p.negative_prompts = p.all_negative_prompts[n * p.batch_size:(n + 1) * p.batch_size]
-            p.style_prompts = p.all_style_prompts[n * p.batch_size:(n + 1) * p.batch_size]
             p.seeds = p.all_seeds[n * p.batch_size:(n + 1) * p.batch_size]
             p.subseeds = p.all_subseeds[n * p.batch_size:(n + 1) * p.batch_size]
 
@@ -965,7 +948,7 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
     cached_hr_uc = [None, None]
     cached_hr_c = [None, None]
 
-    def __init__(self, enable_hr: bool = False, denoising_strength: float = 0.75, firstphase_width: int = 0, firstphase_height: int = 0, hr_scale: float = 2.0, hr_upscaler: str = None, hr_second_pass_steps: int = 0, hr_resize_x: int = 0, hr_resize_y: int = 0, hr_sampler_name: str = None, hr_prompt: str = '', hr_negative_prompt: str = '', hr_style_prompt: str = '', **kwargs):
+    def __init__(self, enable_hr: bool = False, denoising_strength: float = 0.75, firstphase_width: int = 0, firstphase_height: int = 0, hr_scale: float = 2.0, hr_upscaler: str = None, hr_second_pass_steps: int = 0, hr_resize_x: int = 0, hr_resize_y: int = 0, hr_sampler_name: str = None, hr_prompt: str = '', hr_negative_prompt: str = '', **kwargs):
         super().__init__(**kwargs)
         self.enable_hr = enable_hr
         self.denoising_strength = denoising_strength
@@ -979,10 +962,8 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
         self.hr_sampler_name = hr_sampler_name
         self.hr_prompt = hr_prompt
         self.hr_negative_prompt = hr_negative_prompt
-        self.hr_style_prompt = hr_style_prompt
         self.all_hr_prompts = None
         self.all_hr_negative_prompts = None
-        self.all_hr_style_prompts = None
 
         if firstphase_width != 0 or firstphase_height != 0:
             self.hr_upscale_to_x = self.width
@@ -996,7 +977,6 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
 
         self.hr_prompts = None
         self.hr_negative_prompts = None
-        self.hr_style_prompts = None
         self.hr_extra_network_data = None
 
         self.cached_hr_uc = StableDiffusionProcessingTxt2Img.cached_hr_uc
@@ -1014,9 +994,6 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
 
             if tuple(self.hr_negative_prompt) != tuple(self.negative_prompt):
                 self.extra_generation_params["Hires negative prompt"] = self.hr_negative_prompt
-
-            if tuple(self.hr_style_prompt) != tuple(self.style_prompt):
-                self.extra_generation_params["Hires style prompt"] = self.hr_style_prompt
 
             if opts.use_old_hires_fix_width_height and self.applied_old_hires_behavior_to != (self.width, self.height):
                 self.hr_resize_x = self.width
@@ -1203,9 +1180,6 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
         if self.hr_negative_prompt == '':
             self.hr_negative_prompt = self.negative_prompt
 
-        if self.hr_style_prompt == '':
-            self.hr_style_prompt = self.style_prompt
-
         if type(self.hr_prompt) == list:
             self.all_hr_prompts = self.hr_prompt
         else:
@@ -1216,14 +1190,8 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
         else:
             self.all_hr_negative_prompts = self.batch_size * self.n_iter * [self.hr_negative_prompt]
 
-        if type(self.hr_style_prompt) == list:
-            self.all_hr_style_prompts = self.hr_style_prompt
-        else:
-            self.all_hr_style_prompts = self.batch_size * self.n_iter * [self.hr_style_prompt]
-
         self.all_hr_prompts = [shared.prompt_styles.apply_styles_to_prompt(x, self.styles) for x in self.all_hr_prompts]
         self.all_hr_negative_prompts = [shared.prompt_styles.apply_negative_styles_to_prompt(x, self.styles) for x in self.all_hr_negative_prompts]
-        self.all_hr_style_prompts = [x for x in self.all_hr_style_prompts]
 
     def calculate_hr_conds(self):
         if self.hr_c is not None:
