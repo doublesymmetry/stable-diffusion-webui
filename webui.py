@@ -31,20 +31,21 @@ if log_level:
 logging.getLogger("torch.distributed.nn").setLevel(logging.ERROR)  # sshh...
 logging.getLogger("xformers").addFilter(lambda record: 'A matching Triton is not available' not in record.getMessage())
 
-from modules import paths, timer, import_hook, errors, devices  # noqa: F401
-
+from modules import timer
 startup_timer = timer.startup_timer
+startup_timer.record("launcher")
 
 import torch
 import pytorch_lightning   # noqa: F401 # pytorch_lightning should be imported after torch, but it re-enables warnings on import so import once to disable them
 warnings.filterwarnings(action="ignore", category=DeprecationWarning, module="pytorch_lightning")
 warnings.filterwarnings(action="ignore", category=UserWarning, module="torchvision")
-
-
 startup_timer.record("import torch")
 
 import gradio  # noqa: F401
 startup_timer.record("import gradio")
+
+from modules import paths, timer, import_hook, errors, devices  # noqa: F401
+startup_timer.record("setup paths")
 
 import ldm.modules.encoders.modules  # noqa: F401
 startup_timer.record("import ldm")
@@ -57,10 +58,10 @@ if ".dev" in torch.__version__ or "+git" in torch.__version__:
     torch.__long_version__ = torch.__version__
     torch.__version__ = re.search(r'[\d.]+[\d]', torch.__version__).group(0)
 
-from modules import shared, sd_samplers, upscaler, extensions, localization, ui_tempdir, ui_extra_networks, config_states
 import modules.codeformer_model as codeformer
-import modules.face_restoration
 import modules.gfpgan_model as gfpgan
+from modules import shared, sd_samplers, upscaler, extensions, localization, ui_tempdir, ui_extra_networks, config_states
+import modules.face_restoration
 import modules.img2img
 
 import modules.lowvram
@@ -319,9 +320,9 @@ def initialize_rest(*, reload_script_modules=False):
         if modules.sd_hijack.current_optimizer is None:
             modules.sd_hijack.apply_optimizations()
 
-    Thread(target=load_model).start()
+        devices.first_time_calculation()
 
-    Thread(target=devices.first_time_calculation).start()
+    Thread(target=load_model).start()
 
     shared.reload_hypernetworks()
     startup_timer.record("reload hypernetworks")
@@ -373,7 +374,7 @@ def api_only():
     api.launch(
         server_name="0.0.0.0" if cmd_opts.listen else "127.0.0.1",
         port=cmd_opts.port if cmd_opts.port else 7861,
-        root_path = f"/{cmd_opts.subpath}"
+        root_path=f"/{cmd_opts.subpath}" if cmd_opts.subpath else ""
     )
 
 
@@ -406,7 +407,7 @@ def webui():
             ssl_verify=cmd_opts.disable_tls_verify,
             debug=cmd_opts.gradio_debug,
             auth=gradio_auth_creds,
-            inbrowser=cmd_opts.autolaunch and os.getenv('SD_WEBUI_RESTARTING ') != '1',
+            inbrowser=cmd_opts.autolaunch and os.getenv('SD_WEBUI_RESTARTING') != '1',
             prevent_thread_lock=True,
             allowed_paths=cmd_opts.gradio_allowed_path,
             app_kwargs={
