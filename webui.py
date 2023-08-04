@@ -58,10 +58,10 @@ if ".dev" in torch.__version__ or "+git" in torch.__version__:
     torch.__long_version__ = torch.__version__
     torch.__version__ = re.search(r'[\d.]+[\d]', torch.__version__).group(0)
 
-from modules import shared, sd_samplers, upscaler, extensions, localization, ui_tempdir, ui_extra_networks, config_states
 import modules.codeformer_model as codeformer
-import modules.face_restoration
 import modules.gfpgan_model as gfpgan
+from modules import shared, sd_samplers, upscaler, extensions, localization, ui_tempdir, ui_extra_networks, config_states
+import modules.face_restoration
 import modules.img2img
 
 import modules.lowvram
@@ -320,9 +320,9 @@ def initialize_rest(*, reload_script_modules=False):
         if modules.sd_hijack.current_optimizer is None:
             modules.sd_hijack.apply_optimizations()
 
-    Thread(target=load_model).start()
+        devices.first_time_calculation()
 
-    Thread(target=devices.first_time_calculation).start()
+    Thread(target=load_model).start()
 
     shared.reload_hypernetworks()
     startup_timer.record("reload hypernetworks")
