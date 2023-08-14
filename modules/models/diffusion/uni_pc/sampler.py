@@ -76,7 +76,7 @@ class UniPCSampler(object):
 
         device = self.model.betas.device
         if x_T is None:
-            img = torch.randn(size, device=(devices.cpu if shared.opts.randn_source == "CPU" or device.type == 'mps' else device)).to(device)
+            img = torch.randn(size, device=device)
         else:
             img = x_T
 

@@ -29,7 +29,6 @@ def is_using_v_parameterization_for_sd2(state_dict):
     """
 
     import ldm.modules.diffusionmodules.openaimodel
-    from modules import devices
 
     device = devices.cpu
 

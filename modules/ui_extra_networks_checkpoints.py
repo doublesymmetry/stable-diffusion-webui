@@ -3,6 +3,7 @@ import os
 
 from modules import shared, ui_extra_networks, sd_models
 from modules.ui_extra_networks import quote_js
+from modules.ui_extra_networks_checkpoints_user_metadata import CheckpointUserMetadataEditor
 
 
 class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
@@ -18,6 +19,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
         return {
             "name": checkpoint.name_for_extra,
             "filename": checkpoint.filename,
+            "shorthash": checkpoint.shorthash,
             "preview": self.find_preview(path),
             "description": self.find_description(path),
             "search_term": self.search_terms_from_path(checkpoint.filename) + " " + (checkpoint.sha256 or ""),
@@ -34,3 +36,5 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
     def allowed_directories_for_previews(self):
         return [v for v in [shared.cmd_opts.ckpt_dir, sd_models.model_path] if v is not None]
 
+    def create_user_metadata_editor(self, ui, tabname):
+        return CheckpointUserMetadataEditor(ui, tabname, self)

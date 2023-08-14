@@ -4,6 +4,7 @@ import torch
 import platform
 from modules.sd_hijack_utils import CondFunc
 from packaging import version
+from modules import shared
 
 log = logging.getLogger(__name__)
 
@@ -30,8 +31,7 @@ has_mps = check_for_mps()
 
 def torch_mps_gc() -> None:
     try:
-        from modules.shared import state
-        if state.current_latent is not None:
+        if shared.state.current_latent is not None:
             log.debug("`current_latent` is set, skipping MPS garbage collection")
             return
         from torch.mps import empty_cache
@@ -52,14 +52,22 @@ def cumsum_fix(input, cumsum_func, *args, **kwargs):
 
 
 if has_mps:
-    # MPS fix for randn in torchsde
-    CondFunc('torchsde._brownian.brownian_interval._randn', lambda _, size, dtype, device, seed: torch.randn(size, dtype=dtype, device=torch.device("cpu"), generator=torch.Generator(torch.device("cpu")).manual_seed(int(seed))).to(device), lambda _, size, dtype, device, seed: device.type == 'mps')
-
     if platform.mac_ver()[0].startswith("13.2."):
         # MPS workaround for https://github.com/pytorch/pytorch/issues/95188, thanks to danieldk (https://github.com/explosion/curated-transformers/pull/124)
         CondFunc('torch.nn.functional.linear', lambda _, input, weight, bias: (torch.matmul(input, weight.t()) + bias) if bias is not None else torch.matmul(input, weight.t()), lambda _, input, weight, bias: input.numel() > 10485760)
 
-    if version.parse(torch.__version__) > version.parse("1.13.1"):
+    if version.parse(torch.__version__) < version.parse("1.13"):
+        # PyTorch 1.13 doesn't need these fixes but unfortunately is slower and has regressions that prevent training from working
+
+        # MPS workaround for https://github.com/pytorch/pytorch/issues/79383
+        CondFunc('torch.Tensor.to', lambda orig_func, self, *args, **kwargs: orig_func(self.contiguous(), *args, **kwargs),
+                                                          lambda _, self, *args, **kwargs: self.device.type != 'mps' and (args and isinstance(args[0], torch.device) and args[0].type == 'mps' or isinstance(kwargs.get('device'), torch.device) and kwargs['device'].type == 'mps'))
+        # MPS workaround for https://github.com/pytorch/pytorch/issues/80800
+        CondFunc('torch.nn.functional.layer_norm', lambda orig_func, *args, **kwargs: orig_func(*([args[0].contiguous()] + list(args[1:])), **kwargs),
+                                                                                        lambda _, *args, **kwargs: args and isinstance(args[0], torch.Tensor) and args[0].device.type == 'mps')
+        # MPS workaround for https://github.com/pytorch/pytorch/issues/90532
+        CondFunc('torch.Tensor.numpy', lambda orig_func, self, *args, **kwargs: orig_func(self.detach(), *args, **kwargs), lambda _, self, *args, **kwargs: self.requires_grad)
+    elif version.parse(torch.__version__) > version.parse("1.13.1"):
         cumsum_needs_int_fix = not torch.Tensor([1,2]).to(torch.device("mps")).equal(torch.ShortTensor([1,1]).to(torch.device("mps")).cumsum(0))
         cumsum_fix_func = lambda orig_func, input, *args, **kwargs: cumsum_fix(input, orig_func, *args, **kwargs)
         CondFunc('torch.cumsum', cumsum_fix_func, None)

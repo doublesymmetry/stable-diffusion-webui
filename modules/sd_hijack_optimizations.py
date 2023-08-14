@@ -1,6 +1,7 @@
 from __future__ import annotations
 import math
 import psutil
+import platform
 
 import torch
 from torch import einsum
@@ -431,7 +432,6 @@ def sub_quad_attention(q, k, v, q_chunk_size=1024, kv_chunk_size=None, kv_chunk_
 
     if chunk_threshold is None:
         if q.device.type == 'mps':
-            import platform
             chunk_threshold_bytes = 268435456 * (2 if platform.processor() == 'i386' else bytes_per_token)
         else:
             chunk_threshold_bytes = int(get_available_vram() * 0.7)
