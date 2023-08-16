@@ -81,6 +81,12 @@ def apply_overlay(image, paste_loc, index, overlays):
 
     return image
 
+def create_binary_mask(image):
+    if image.mode == 'RGBA' and image.getextrema()[-1] != (255, 255):
+        image = image.split()[-1].convert("L").point(lambda x: 255 if x > 128 else 0)
+    else:
+        image = image.convert('L')
+    return image
 
 def txt2img_image_conditioning(sd_model, x, width, height):
     if sd_model.model.conditioning_key in {'hybrid', 'concat'}: # Inpainting models
@@ -382,13 +388,18 @@ class StableDiffusionProcessing:
     def setup_prompts(self):
         if type(self.prompt) == list:
             self.all_prompts = self.prompt
+        elif type(self.negative_prompt) == list:
+            self.all_prompts = [self.prompt] * len(self.negative_prompt)
         else:
             self.all_prompts = self.batch_size * self.n_iter * [self.prompt]
 
         if type(self.negative_prompt) == list:
             self.all_negative_prompts = self.negative_prompt
         else:
-            self.all_negative_prompts = self.batch_size * self.n_iter * [self.negative_prompt]
+            self.all_negative_prompts = [self.negative_prompt] * len(self.all_prompts)
+
+        if len(self.all_prompts) != len(self.all_negative_prompts):
+            raise RuntimeError(f"Received a different number of prompts ({len(self.all_prompts)}) and negative prompts ({len(self.all_negative_prompts)})")
 
         self.all_prompts = [shared.prompt_styles.apply_styles_to_prompt(x, self.styles) for x in self.all_prompts]
         self.all_negative_prompts = [shared.prompt_styles.apply_negative_styles_to_prompt(x, self.styles) for x in self.all_negative_prompts]
@@ -746,7 +757,7 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
     if p.tiling is None:
         p.tiling = opts.tiling
 
-    if p.refiner_checkpoint not in (None, "", "None"):
+    if p.refiner_checkpoint not in (None, "", "None", "none"):
         p.refiner_checkpoint_info = sd_models.get_closet_checkpoint_match(p.refiner_checkpoint)
         if p.refiner_checkpoint_info is None:
             raise Exception(f'Could not find checkpoint with name {p.refiner_checkpoint}')
@@ -1380,7 +1391,9 @@ class StableDiffusionProcessingImg2Img(StableDiffusionProcessing):
         image_mask = self.image_mask
 
         if image_mask is not None:
-            image_mask = image_mask.convert('L')
+            # image_mask is passed in as RGBA by Gradio to support alpha masks,
+            # but we still want to support binary masks.
+            image_mask = create_binary_mask(image_mask)
 
             if self.inpainting_mask_invert:
                 image_mask = ImageOps.invert(image_mask)
