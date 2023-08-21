@@ -48,6 +48,7 @@ def add_task_to_queue(id_job):
 class ProgressRequest(BaseModel):
     id_task: str = Field(default=None, title="Task ID", description="id of the task to get progress for")
     id_live_preview: int = Field(default=-1, title="Live preview image ID", description="id of last received last preview image")
+    live_preview: bool = Field(default=True, title="Include live preview", description="boolean flag indicating whether to include the live preview image")
 
 
 class ProgressResponse(BaseModel):
@@ -71,7 +72,12 @@ def progressapi(req: ProgressRequest):
     completed = req.id_task in finished_tasks
 
     if not active:
-        return ProgressResponse(active=active, queued=queued, completed=completed, id_live_preview=-1, textinfo="In queue..." if queued else "Waiting...")
+        textinfo = "Waiting..."
+        if queued:
+            sorted_queued = sorted(pending_tasks.keys(), key=lambda x: pending_tasks[x])
+            queue_index = sorted_queued.index(req.id_task)
+            textinfo = "In queue: {}/{}".format(queue_index + 1, len(sorted_queued))
+        return ProgressResponse(active=active, queued=queued, completed=completed, id_live_preview=-1, textinfo=textinfo)
 
     progress = 0
 
@@ -91,7 +97,7 @@ def progressapi(req: ProgressRequest):
 
     id_live_preview = req.id_live_preview
     shared.state.set_current_image()
-    if opts.live_previews_enable and shared.state.id_live_preview != req.id_live_preview:
+    if opts.live_previews_enable and req.live_preview and shared.state.id_live_preview != req.id_live_preview:
         image = shared.state.current_image
         if image is not None:
             buffered = io.BytesIO()
