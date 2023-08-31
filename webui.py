@@ -75,7 +75,7 @@ def webui():
             if shared.opts.auto_launch_browser == "Remote" or cmd_opts.autolaunch:
                 auto_launch_browser = True
             elif shared.opts.auto_launch_browser == "Local":
-                auto_launch_browser = not any([cmd_opts.listen, cmd_opts.share, cmd_opts.ngrok])
+                auto_launch_browser = not cmd_opts.webui_is_non_local
 
         electron_exe = False
         if auto_launch_browser and cmd_opts.electron:

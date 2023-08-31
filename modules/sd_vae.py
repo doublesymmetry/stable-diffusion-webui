@@ -159,7 +159,7 @@ def resolve_vae_from_user_metadata(checkpoint_file) -> VaeResolution:
 
 def resolve_vae_near_checkpoint(checkpoint_file) -> VaeResolution:
     vae_near_checkpoint = find_vae_near_checkpoint(checkpoint_file)
-    if vae_near_checkpoint is not None and (not shared.opts.sd_vae_overrides_per_model_preferences or is_automatic):
+    if vae_near_checkpoint is not None and (not shared.opts.sd_vae_overrides_per_model_preferences or is_automatic()):
         return VaeResolution(vae_near_checkpoint, 'found near the checkpoint')
 
     return VaeResolution(resolved=False)
@@ -263,7 +263,7 @@ def reload_vae_weights(sd_model=None, vae_file=unspecified):
     if loaded_vae_file == vae_file:
         return
 
-    if shared.cmd_opts.lowvram or shared.cmd_opts.medvram:
+    if sd_model.lowvram:
         lowvram.send_everything_to_cpu()
     else:
         sd_model.to(devices.cpu)
@@ -275,7 +275,7 @@ def reload_vae_weights(sd_model=None, vae_file=unspecified):
     sd_hijack.model_hijack.hijack(sd_model)
     script_callbacks.model_loaded_callback(sd_model)
 
-    if not shared.cmd_opts.lowvram and not shared.cmd_opts.medvram:
+    if not sd_model.lowvram:
         sd_model.to(devices.device)
 
     print("VAE weights loaded.")
