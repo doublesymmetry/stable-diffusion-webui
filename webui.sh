@@ -74,7 +74,19 @@ fi
 # python3 venv without trailing slash (defaults to ${install_dir}/${clone_dir}/venv)
 if [[ -z "${venv_dir}" ]] && [[ $use_venv -eq 1 ]]
 then
-    venv_dir="venv"
+    if [[ -f .venv_parent_dir ]]; then
+        read -r venv_parent_dir < .venv_parent_dir
+        if [[ ! -z "${venv_parent_dir}" ]]; then
+            ln -fhs "$PWD" "${venv_parent_dir}"
+            chmod -h +rw "${venv_parent_dir}"
+            if [[ -d "${venv_parent_dir}" ]]; then
+                venv_dir="${venv_parent_dir}/venv"
+            fi
+        fi
+    fi
+    if [[ -z "${venv_dir}" ]]; then
+        venv_dir="venv"
+    fi
 fi
 
 if [[ -z "${LAUNCH_SCRIPT}" ]]
