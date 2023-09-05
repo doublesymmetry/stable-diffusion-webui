@@ -13,7 +13,7 @@ export PYTORCH_ENABLE_MPS_FALLBACK=1
 export TRANSFORMERS_CACHE="$PWD/models/transformers"
 
 # Add git, python, and node.js to PATH
-export PATH="$PWD/bin-deps/python/3.10.12/bin:$PWD/bin-deps/git/bin:$PWD/bin-deps/node/bin:$PATH"
+export PATH="$PWD/bin-deps/python/3.10.13/bin:$PWD/bin-deps/git/bin:$PWD/bin-deps/node/bin:$PATH"
 export GIT_EXEC_PATH="$PWD/bin-deps/git/libexec/git-core"
 export GIT_TEMPLATE_DIR="$PWD/bin-deps/git/share/git-core/templates"
 export NODE_PATH=$(npm root --quiet -g)
