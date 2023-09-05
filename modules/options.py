@@ -185,7 +185,7 @@ class Options:
         if isinstance(self.data.get('ui_reorder'), str) and self.data.get('ui_reorder') and "ui_reorder_list" not in self.data:
             self.data['ui_reorder_list'] = [i.strip() for i in self.data.get('ui_reorder').split(',')]
 
-        if self.data.get('upcast_attn') == False or self.data.get('upcast_attn') == True:
+        if self.data.get('upcast_attn') is False or self.data.get('upcast_attn') is True:
             self.data['upcast_attn'] = "Automatic"
 
         bad_settings = 0
