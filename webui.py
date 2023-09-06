@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import time
 import subprocess
+import threading
 
 from modules import timer
 from modules import initialize_util
@@ -133,19 +134,25 @@ def webui():
         timer.startup_record = startup_timer.dump()
         print(f"Startup time: {startup_timer.summary()}.")
 
+        electron_thread = None
         if electron_exe:
-            try:
-                electron_args = [
-                    "--disable-renderer-backgrounding"
-                ]
-                subprocess.run([electron_exe.strip()] + electron_args + [local_url])
-            except OSError as ex:
-                print('Failed running electron...', ex)
+            def run_electron():
+                try:
+                    electron_args = [
+                        "--disable-renderer-backgrounding"
+                    ]
+                    subprocess.run([electron_exe.strip()] + electron_args + [local_url])
+                except OSError as ex:
+                    print('Failed running electron...', ex)
+            electron_thread = threading.Thread(target=run_electron)
+            electron_thread.start()
 
 
         try:
             while True:
                 server_command = shared.state.wait_for_server_command(timeout=5)
+                if cmd_opts.electron_quit_on_exit and electron_thread is not None and not electron_thread.is_alive():
+                    server_command = "stop"
                 if server_command:
                     if server_command in ("stop", "restart"):
                         break
