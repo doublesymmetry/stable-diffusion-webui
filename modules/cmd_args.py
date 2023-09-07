@@ -88,6 +88,7 @@ parser.add_argument("--opt-channelslast", action='store_true', help="change memo
 parser.add_argument("--styles-file", type=str, help="filename to use for styles", default=os.path.join(data_path, 'styles.csv'))
 parser.add_argument("--autolaunch", action='store_true', help="open the webui URL in the system's default browser upon launch", default=False)
 parser.add_argument("--electron", action='store_true', help="when --autolaunch is provided, open the webui URL as a standalone Electron app instead.", default=False)
+parser.add_argument("--electron-path", type=str, help="when --electron is provided, use the specified path instead of retrieving the path from node.", default=None)
 parser.add_argument("--electron-quit-on-exit", action='store_true', help="when --electron is provided, quit when the Electron app exits.", default=False)
 parser.add_argument("--theme", type=str, help="launches the UI with light or dark theme", default=None)
 parser.add_argument("--use-textbox-seed", action='store_true', help="use textbox for seeds in UI (no up/down, but possible to input long seeds)", default=False)

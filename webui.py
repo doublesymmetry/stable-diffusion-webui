@@ -79,7 +79,8 @@ def webui():
                 auto_launch_browser = not cmd_opts.webui_is_non_local
 
         electron_exe = False
-        if auto_launch_browser and cmd_opts.electron:
+        electron_path = None
+        if auto_launch_browser and cmd_opts.electron and cmd_opts.electron_path is None:
             try:
                 electron_exe = subprocess.check_output(["node", "-p", "require('electron')"])
             except OSError as ex:
@@ -88,6 +89,9 @@ def webui():
             if electron_exe:
                 auto_launch_browser = False
                 print('Found Electron in {}'.format(electron_exe))
+        elif auto_launch_browser and cmd_opts.electron and cmd_opts.electron_path and os.path.isfile(cmd_opts.electron_path):
+            auto_launch_browser = False
+            electron_path = cmd_opts.electron_path
 
         app, local_url, share_url = shared.demo.launch(
             share=cmd_opts.share,
@@ -135,13 +139,13 @@ def webui():
         print(f"Startup time: {startup_timer.summary()}.")
 
         electron_thread = None
-        if electron_exe:
+        if electron_exe or electron_path:
             def run_electron():
                 try:
                     electron_args = [
                         "--disable-renderer-backgrounding"
                     ]
-                    subprocess.run([electron_exe.strip()] + electron_args + [local_url])
+                    subprocess.run([electron_path or electron_exe.strip()] + electron_args + [local_url])
                 except OSError as ex:
                     print('Failed running electron...', ex)
             electron_thread = threading.Thread(target=run_electron)
