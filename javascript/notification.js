@@ -5,6 +5,7 @@ let lastHeadImg = null;
 let notificationButton = null;
 
 onAfterUiUpdate(function() {
+    if (navigator.userAgent.toLowerCase().indexOf(' electron/') > -1) return;
     if (notificationButton == null) {
         notificationButton = gradioApp().getElementById('request_notifications');
 
