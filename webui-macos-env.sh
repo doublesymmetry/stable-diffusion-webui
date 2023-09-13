@@ -5,7 +5,7 @@
 ####################################################################
 
 export install_dir="$HOME"
-export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --no-half-vae --upcast-sampling --use-cpu interrogate"
+export COMMANDLINE_ARGS="--skip-torch-cuda-test --skip-install --no-half-vae --upcast-sampling --use-cpu interrogate --precision full"
 export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
 export PYTORCH_ENABLE_MPS_FALLBACK=1
 
