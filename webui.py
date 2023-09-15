@@ -140,15 +140,15 @@ def webui():
 
         electron_thread = None
         if electron_exe or electron_path:
-            def run_electron():
+            def run_electron(electron_path, local_url):
                 try:
                     electron_args = [
                         "--disable-renderer-backgrounding"
                     ]
-                    subprocess.run([electron_path or electron_exe.strip()] + electron_args + [local_url])
+                    subprocess.run([electron_path] + electron_args + [local_url])
                 except OSError as ex:
                     print('Failed running electron...', ex)
-            electron_thread = threading.Thread(target=run_electron)
+            electron_thread = threading.Thread(target=run_electron, args=(electron_path or electron_exe.strip(), local_url))
             electron_thread.start()
 
 
