@@ -142,6 +142,7 @@ def checkpoint_tiles(use_short=False):
 
 
 def list_models():
+    global checkpoints_list_prev, checkpoint_aliases_prev
     if list_models_lock.locked():
         with list_models_lock:
             return
