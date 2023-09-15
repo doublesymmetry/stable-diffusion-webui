@@ -38,7 +38,7 @@ def initialize():
     shared.prompt_styles = styles.StyleDatabase(shared.styles_filename)
 
     from modules import interrogate
-    shared.interrogator = interrogate.InterrogateModels("interrogate")
+    shared.interrogator = interrogate.InterrogateModels(os.path.join(shared.data_path, "interrogate"))
 
     from modules import shared_total_tqdm
     shared.total_tqdm = shared_total_tqdm.TotalTQDM()
