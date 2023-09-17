@@ -130,8 +130,8 @@ def repo_dir(name):
     return os.path.join(script_path, dir_repos, name)
 
 
-def run_pip(command, desc=None, live=default_command_live):
-    if args.skip_install:
+def run_pip(command, desc=None, live=default_command_live, is_extension=True):
+    if args.skip_install and not is_extension or args.skip_install_extensions and is_extension:
         return
 
     index_url_line = f' --index-url {index_url}' if index_url != '' else ''
@@ -360,19 +360,19 @@ def prepare_environment():
     startup_timer.record("torch GPU test")
 
     if not is_installed("clip"):
-        run_pip(f"install {clip_package}", "clip")
+        run_pip(f"install {clip_package}", "clip", is_extension=False)
         startup_timer.record("install clip")
 
     if not is_installed("open_clip"):
-        run_pip(f"install {openclip_package}", "open_clip")
+        run_pip(f"install {openclip_package}", "open_clip", is_extension=False)
         startup_timer.record("install open_clip")
 
     if (not is_installed("xformers") or args.reinstall_xformers) and args.xformers:
-        run_pip(f"install -U -I --no-deps {xformers_package}", "xformers")
+        run_pip(f"install -U -I --no-deps {xformers_package}", "xformers", is_extension=False)
         startup_timer.record("install xformers")
 
     if not is_installed("ngrok") and args.ngrok:
-        run_pip("install ngrok", "ngrok")
+        run_pip("install ngrok", "ngrok", is_extension=False)
         startup_timer.record("install ngrok")
 
     os.makedirs(os.path.join(script_path, dir_repos), exist_ok=True)
@@ -386,17 +386,17 @@ def prepare_environment():
     startup_timer.record("clone repositores")
 
     if not is_installed("lpips"):
-        run_pip(f"install -r \"{os.path.join(repo_dir('CodeFormer'), 'requirements.txt')}\"", "requirements for CodeFormer")
+        run_pip(f"install -r \"{os.path.join(repo_dir('CodeFormer'), 'requirements.txt')}\"", "requirements for CodeFormer", is_extension=False)
         startup_timer.record("install CodeFormer requirements")
 
     if not os.path.isfile(requirements_file):
         requirements_file = os.path.join(script_path, requirements_file)
 
     if not requirements_met(requirements_file):
-        run_pip(f"install -r \"{requirements_file}\"", "requirements")
+        run_pip(f"install -r \"{requirements_file}\"", "requirements", is_extension=False)
         startup_timer.record("install requirements")
 
-    if not args.skip_install:
+    if not args.skip_install_extensions:
         run_extensions_installers(settings_file=args.ui_settings_file)
 
     if args.update_check:
