@@ -14,7 +14,10 @@ def is_restartable() -> bool:
 def restart_program() -> None:
     """creates file tmp/restart and immediately stops the process, which webui.bat/webui.sh interpret as a command to start webui again"""
 
-    (Path(script_path) / "tmp" / "restart").touch()
+    if os.environ.get('SD_WEBUI_RESTART'):
+        Path(os.environ.get('SD_WEBUI_RESTART')).touch()
+    else:
+        (Path(script_path) / "tmp" / "restart").touch()
 
     stop_program()
 

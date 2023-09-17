@@ -259,7 +259,10 @@ prepare_tcmalloc() {
 }
 
 KEEP_GOING=1
-export SD_WEBUI_RESTART=tmp/restart
+if [[ -z "${SD_WEBUI_RESTART_PATH}" ]]; then
+    SD_WEBUI_RESTART_PATH=tmp/restart
+fi
+export SD_WEBUI_RESTART="${SD_WEBUI_RESTART_PATH}"
 while [[ "$KEEP_GOING" -eq "1" ]]; do
     if [[ ! -z "${ACCELERATE}" ]] && [ ${ACCELERATE}="True" ] && [ -x "$(command -v accelerate)" ]; then
         printf "\n%s\n" "${delimiter}"
@@ -275,7 +278,7 @@ while [[ "$KEEP_GOING" -eq "1" ]]; do
         "${python_cmd}" -u "${LAUNCH_SCRIPT}" "$@"
     fi
 
-    if [[ ! -f tmp/restart ]]; then
+    if [[ ! -f "${SD_WEBUI_RESTART}" ]]; then
         KEEP_GOING=0
     fi
 done

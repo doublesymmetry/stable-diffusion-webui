@@ -330,7 +330,7 @@ def prepare_environment():
 
     try:
         # the existence of this file is a signal to webui.sh/bat that webui needs to be restarted when it stops execution
-        os.remove(os.path.join(script_path, "tmp", "restart"))
+        os.remove(os.environ.get('SD_WEBUI_RESTART', os.path.join(script_path, "tmp", "restart")))
         os.environ.setdefault('SD_WEBUI_RESTARTING', '1')
     except OSError:
         pass
