@@ -4,6 +4,7 @@ import os
 import time
 import subprocess
 import threading
+import errno
 
 from modules import timer
 from modules import initialize_util
@@ -72,7 +73,7 @@ def webui():
         gradio_auth_creds = list(initialize_util.get_gradio_auth_creds()) or None
 
         auto_launch_browser = False
-        if os.getenv('SD_WEBUI_RESTARTING') != '1':
+        if os.getenv('SD_WEBUI_RESTARTING') != '1' or cmd_opts.electron:
             if shared.opts.auto_launch_browser == "Remote" or cmd_opts.autolaunch:
                 auto_launch_browser = True
             elif shared.opts.auto_launch_browser == "Local":
@@ -145,7 +146,20 @@ def webui():
                     electron_args = [
                         "--disable-renderer-backgrounding"
                     ]
-                    subprocess.run([electron_path] + electron_args + [local_url])
+                    try:
+                        electron_pid = int(subprocess.check_output(["pgrep", "-xfU", str(os.getuid()), ' '.join([electron_path] + electron_args + [local_url])]))
+                    except subprocess.CalledProcessError:
+                        electron_pid = None
+                    if electron_pid:
+                        while True:
+                            time.sleep(1)
+                            try:
+                                os.kill(electron_pid, 0)
+                            except OSError as err:
+                                if err.errno == errno.ESRCH:
+                                    break
+                    else:
+                        subprocess.run([electron_path] + electron_args + [local_url])
                 except OSError as ex:
                     print('Failed running electron...', ex)
             electron_thread = threading.Thread(target=run_electron, args=(electron_path or electron_exe.strip(), local_url))
