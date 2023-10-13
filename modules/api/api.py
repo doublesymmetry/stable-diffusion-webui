@@ -221,7 +221,7 @@ class Api:
         self.add_api_route("/sdapi/v1/png-info", self.pnginfoapi, methods=["POST"], response_model=models.PNGInfoResponse)
         self.add_api_route("/sdapi/v1/progress", self.progressapi, methods=["GET"], response_model=models.ProgressResponse)
 
-        self.add_api_route("/sdapi/v1/new-progress", self.newprogressapi, methods=["POST"], response_model=NewProgressResponse)
+        self.add_api_route("/sdapi/v1/new-progress", self.newprogressapi, methods=["POST"], response_model=models.NewProgressResponse)
         self.add_api_route("/sdapi/v1/cancel", self.cancel, methods=["POST"])
 
         self.add_api_route("/sdapi/v1/interrogate", self.interrogateapi, methods=["POST"])
@@ -532,14 +532,14 @@ class Api:
 
         return models.ProgressResponse(progress=progress, eta_relative=eta_relative, state=shared.state.dict(), current_image=current_image, textinfo=shared.state.textinfo)
 
-    def newprogressapi(self, req: NewProgressRequest):
+    def newprogressapi(self, req: models.NewProgressRequest):
         active = req.id_task == jobs.current_task
         queued = req.id_task in jobs.pending_tasks
         completed = req.id_task in jobs.finished_tasks
 
         if not active:
             position_in_queue = sum(1 for job_id, timestamp in jobs.pending_tasks.items() if timestamp < jobs.pending_tasks[req.id_task]) + 1
-            return NewProgressResponse(active=active, queued=queued, completed=completed, eta=position_in_queue, textinfo="In queue..." if queued else "Waiting...")
+            return models.NewProgressResponse(active=active, queued=queued, completed=completed, eta=position_in_queue, textinfo="In queue..." if queued else "Waiting...")
 
         progress = 0
 
@@ -567,9 +567,9 @@ class Api:
         else:
             live_preview = None
 
-        return NewProgressResponse(active=active, queued=queued, completed=completed, progress=progress, eta=eta, live_preview=live_preview, textinfo=shared.state.textinfo)
+        return models.NewProgressResponse(active=active, queued=queued, completed=completed, progress=progress, eta=eta, live_preview=live_preview, textinfo=shared.state.textinfo)
 
-    def cancel(self, req: CancelRequest):
+    def cancel(self, req: models.CancelRequest):
         if req.id_task == jobs.current_task:
             shared.state.interrupt()
 
