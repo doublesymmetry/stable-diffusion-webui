@@ -34,6 +34,11 @@ import piexif
 import piexif.helper
 from contextlib import closing
 
+from modules.api import jobs
+
+current_task = None
+pending_tasks = {}
+finished_tasks = []
 
 def script_name_to_index(name, scripts):
     try:
@@ -215,6 +220,10 @@ class Api:
         self.add_api_route("/sdapi/v1/extra-batch-images", self.extras_batch_images_api, methods=["POST"], response_model=models.ExtrasBatchImagesResponse)
         self.add_api_route("/sdapi/v1/png-info", self.pnginfoapi, methods=["POST"], response_model=models.PNGInfoResponse)
         self.add_api_route("/sdapi/v1/progress", self.progressapi, methods=["GET"], response_model=models.ProgressResponse)
+
+        self.add_api_route("/sdapi/v1/new-progress", self.newprogressapi, methods=["POST"], response_model=models.NewProgressResponse)
+        self.add_api_route("/sdapi/v1/cancel", self.cancel, methods=["POST"])
+
         self.add_api_route("/sdapi/v1/interrogate", self.interrogateapi, methods=["POST"])
         self.add_api_route("/sdapi/v1/interrupt", self.interruptapi, methods=["POST"])
         self.add_api_route("/sdapi/v1/skip", self.skip, methods=["POST"])
@@ -337,6 +346,7 @@ class Api:
         return script_args
 
     def text2imgapi(self, txt2imgreq: models.StableDiffusionTxt2ImgProcessingAPI):
+        global current_task
         script_runner = scripts.scripts_txt2img
         if not script_runner.scripts:
             script_runner.initialize_scripts(False)
@@ -362,7 +372,9 @@ class Api:
 
         send_images = args.pop('send_images', True)
         args.pop('save_images', None)
+        args.pop('generation_id', None)
 
+        jobs.add_task_to_queue(txt2imgreq.generation_id)
         with self.queue_lock:
             with closing(StableDiffusionProcessingTxt2Img(sd_model=shared.sd_model, **args)) as p:
                 p.is_api = True
@@ -372,6 +384,7 @@ class Api:
 
                 try:
                     shared.state.begin(job="scripts_txt2img")
+                    jobs.start_task(txt2imgreq.generation_id)
                     if selectable_scripts is not None:
                         p.script_args = script_args
                         processed = scripts.scripts_txt2img.run(p, *p.script_args) # Need to pass args as list here
@@ -379,6 +392,9 @@ class Api:
                         p.script_args = tuple(script_args) # Need to pass args as tuple here
                         processed = process_images(p)
                 finally:
+                    jobs.record_results(txt2imgreq.generation_id, processed)
+                    jobs.finish_task(txt2imgreq.generation_id)
+                    
                     shared.state.end()
                     shared.total_tqdm.clear()
 
@@ -515,6 +531,49 @@ class Api:
             current_image = encode_pil_to_base64(shared.state.current_image)
 
         return models.ProgressResponse(progress=progress, eta_relative=eta_relative, state=shared.state.dict(), current_image=current_image, textinfo=shared.state.textinfo)
+
+    def newprogressapi(self, req: models.NewProgressRequest):
+        active = req.id_task == jobs.current_task
+        queued = req.id_task in jobs.pending_tasks
+        completed = req.id_task in jobs.finished_tasks
+
+        if not active:
+            position_in_queue = sum(1 for job_id, timestamp in jobs.pending_tasks.items() if timestamp < jobs.pending_tasks[req.id_task]) + 1
+            return models.NewProgressResponse(active=active, queued=queued, completed=completed, eta=position_in_queue, textinfo="In queue..." if queued else "Waiting...")
+
+        progress = 0
+
+        job_count, job_no = shared.state.job_count, shared.state.job_no
+        sampling_steps, sampling_step = shared.state.sampling_steps, shared.state.sampling_step
+
+        if job_count > 0:
+            progress += job_no / job_count
+        if sampling_steps > 0 and job_count > 0:
+            progress += 1 / job_count * sampling_step / sampling_steps
+
+        progress = min(progress, 1)
+
+        elapsed_since_start = time.time() - shared.state.time_start
+        predicted_duration = elapsed_since_start / progress if progress > 0 else None
+        eta = predicted_duration - elapsed_since_start if predicted_duration is not None else None
+
+        shared.state.set_current_image()
+        image = shared.state.current_image
+
+        if image is not None:
+            buffered = io.BytesIO()
+            image.save(buffered, format="png")
+            live_preview = base64.b64encode(buffered.getvalue()).decode("ascii")
+        else:
+            live_preview = None
+
+        return models.NewProgressResponse(active=active, queued=queued, completed=completed, progress=progress, eta=eta, live_preview=live_preview, textinfo=shared.state.textinfo)
+
+    def cancel(self, req: models.CancelRequest):
+        if req.id_task == jobs.current_task:
+            shared.state.interrupt()
+
+        jobs.cancel_task(req.id_task)
 
     def interrogateapi(self, interrogatereq: models.InterrogateRequest):
         image_b64 = interrogatereq.image
