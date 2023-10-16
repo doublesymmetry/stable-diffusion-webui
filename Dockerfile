@@ -20,6 +20,15 @@ RUN apk add --no-cache aria2
 RUN aria2c -x 5 --dir / --out wheel.whl 'https://github.com/AbdBarho/stable-diffusion-webui-docker/releases/download/6.0.0/xformers-0.0.21.dev544-cp310-cp310-manylinux2014_x86_64-pytorch201.whl'
 
 
+FROM bash:alpine3.18 as models
+
+RUN apk add parallel aria2
+COPY download.sh /download.sh
+COPY checksums.sha256 /checksums.sha256
+COPY links.txt /links.txt
+RUN . /download.sh
+
+
 FROM python:3.10.9-slim
 
 ENV DEBIAN_FRONTEND=noninteractive PIP_PREFER_BINARY=1
@@ -77,15 +86,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   git reset --hard ${SHA} && \
   pip install -r requirements_versions.txt
 
-# Download deliberate model into the right place
-# Download from: https://civitai.com/api/download/models/15236
-# Should go into: ${ROOT}/models/Stable-diffusion/deliberate-v2.safetensors
-RUN cd stable-diffusion-webui && \
-  mkdir -p models/Stable-diffusion && \
-  aria2c -x 5 --dir models/Stable-diffusion --out deliberate-v2.safetensors -c \
-  https://civitai.com/api/download/models/15236
-
-
 COPY . /docker
 
 RUN \
@@ -94,6 +94,8 @@ RUN \
   # one of the ugliest hacks I ever wrote \
   sed -i 's/in_app_dir = .*/in_app_dir = True/g' /usr/local/lib/python3.10/site-packages/gradio/routes.py && \
   git config --global --add safe.directory '*'
+
+COPY --from=models /data/models/ ${ROOT}/models/
 
 WORKDIR ${ROOT}
 ENV NVIDIA_VISIBLE_DEVICES=all
