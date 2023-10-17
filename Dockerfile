@@ -2,7 +2,6 @@ FROM alpine/git:2.36.2 as download
 
 COPY clone.sh /clone.sh
 
-
 RUN . /clone.sh stable-diffusion-stability-ai https://github.com/Stability-AI/stablediffusion.git cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf \
   && rm -rf assets data/**/*.png data/**/*.jpg data/**/*.gif
 
@@ -89,7 +88,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY . /docker
 
 RUN \
-  python3 /docker/info.py ${ROOT}/modules/ui.py && \
   mv ${ROOT}/style.css ${ROOT}/user.css && \
   # one of the ugliest hacks I ever wrote \
   sed -i 's/in_app_dir = .*/in_app_dir = True/g' /usr/local/lib/python3.10/site-packages/gradio/routes.py && \
@@ -99,7 +97,6 @@ COPY --from=models /data/models/ ${ROOT}/models/
 
 WORKDIR ${ROOT}
 ENV NVIDIA_VISIBLE_DEVICES=all
-ENV CLI_ARGS="--allow-code --enable-insecure-extension-access --api --cors-allow-origins=*"
+ENV CLI_ARGS="--allow-code --xformers --enable-insecure-extension-access --api --cors-allow-origins=*"
 EXPOSE 7860
-ENTRYPOINT ["/docker/entrypoint.sh"]
 CMD python -u webui.py --listen --port 7860 ${CLI_ARGS}

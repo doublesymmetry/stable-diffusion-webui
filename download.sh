@@ -8,10 +8,7 @@ mkdir -vp /data/.cache \
   /data/config/ \
   /data/models/ \
   /data/models/Stable-diffusion \
-  /data/models/GFPGAN \
-  /data/models/RealESRGAN \
-  /data/models/LDSR \
-  /data/models/VAE
+  /data/models/RealESRGAN
 
 echo "Downloading, this might take a while..."
 
