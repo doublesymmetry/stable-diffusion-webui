@@ -6,6 +6,7 @@ __pycache__
 /SwinIR/*
 /repositories
 /venv
+/venv-torch-nightly
 /tmp
 /model.ckpt
 /models/**/*
@@ -13,7 +14,6 @@ __pycache__
 /gfpgan/weights/*.pth
 /ui-config.json
 /outputs
-/config.json
 /log
 /webui.settings.bat
 /embeddings
