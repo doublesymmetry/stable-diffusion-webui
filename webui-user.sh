@@ -13,11 +13,11 @@
 #export COMMANDLINE_ARGS=""
 
 # check if macos, if so set commandline args
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    export COMMANDLINE_ARGS="--skip-torch-cuda-test --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate --listen --nowebui --port=7860 --cors-allow-origins=*"
-else
-    export COMMANDLINE_ARGS="--listen --nowebui --port=7860 --cors-allow-origins=*"
-fi
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#     export COMMANDLINE_ARGS="--skip-torch-cuda-test --upcast-sampling --opt-sub-quad-attention --use-cpu interrogate --listen --nowebui --port=7860 --cors-allow-origins=*"
+# else
+#     export COMMANDLINE_ARGS="--listen --nowebui --port=7860 --cors-allow-origins=*"
+# fi
 
 # python3 executable
 #python_cmd="python3"
@@ -27,18 +27,18 @@ fi
 
 # python3 venv without trailing slash (defaults to ${install_dir}/${clone_dir}/venv)
 #venv_dir="venv"
-venv_dir="venv-torch-nightly"
+# venv_dir="venv-torch-nightly"
 
 # script to launch to start the app
 #export LAUNCH_SCRIPT="launch.py"
 
 # install command for torch
 #export TORCH_COMMAND="pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
-else
-    export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html"
-fi
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#     export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html"
+# else
+#     export TORCH_COMMAND="pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html"
+# fi
 
 # Requirements file to use for stable-diffusion-webui
 #export REQS_FILE="requirements_versions.txt"
